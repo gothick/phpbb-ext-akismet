@@ -1,0 +1,25 @@
+{
+   "name": "gothick/phpbb-ext-akismet",
+   "type": "phpbb-extension",
+   "description": "Akismet Anti-Spam Extension for PHPBB",
+   "homepage": "https://github.com/gothick/phpbb-ext-akismet",
+   "version": "0.1.0",
+   "time": "2015-01-16",
+   "license": "GPL-2.0",
+   "authors": [{
+      "name": "Matt Gibson",
+      "email": "gothick@gothick.org.uk",
+      "homepage": "http://gothick.org.uk",
+      "role": "Lead Developer"
+   }],
+   "require": {
+      "php": ">=5.3.3",
+      "composer/installers": "~1.0"
+   },
+   "extra": {
+      "display-name": "Akismet Anti-Spam Extension",
+      "soft-require" : {
+         "phpbb/phpbb": ">=3.1.0-RC2,<3.2.*@dev"
+      }
+   }
+}
