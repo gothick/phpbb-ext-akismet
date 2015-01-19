@@ -1,6 +1,6 @@
 services:
-    gothick.phpbb-ext-akismet.controller:
-        class: gothick\phpbb-ext-akismet\controller\main
+    gothick.akismet.controller:
+        class: gothick\akismet\controller\main
         arguments:
              - @config
 	     - @controller.helper

@@ -1,5 +1,5 @@
 {
-   "name": "gothick/phpbb-ext-akismet",
+   "name": "gothick/akismet",
    "type": "phpbb-extension",
    "description": "Akismet Anti-Spam Extension for PHPBB",
    "homepage": "https://github.com/gothick/phpbb-ext-akismet",
