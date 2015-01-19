@@ -1,0 +1,3 @@
+gothick_phpbb-ext-akismet_controller:
+    path: /akismet/{name}
+    defaults: { _controller: gothick.phpbb-ext-akismet.controller:handle }
