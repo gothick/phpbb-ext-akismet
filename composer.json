@@ -14,7 +14,8 @@
    }],
    "require": {
       "php": ">=5.3.3",
-      "composer/installers": "~1.0"
+      "composer/installers": "~1.0",
+      "tijsverkoyen/akismet": "dev-master"
    },
    "extra": {
       "display-name": "Akismet Anti-Spam Extension",
