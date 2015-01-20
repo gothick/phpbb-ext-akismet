@@ -26,11 +26,6 @@ class main_listener implements EventSubscriberInterface
         return array(
                 'core.user_setup'						=> 'load_language_on_setup',
                 'core.page_header'						=> 'add_page_header_link',
-                //'core.submit_post_end'                  => 'check_submitted_post',
-                //'core.modify_posting_parameters' => 'check_submitted_post',
-                //'core.modify_submit_post_data' => 'check_submitted_post',
-                //'core.posting_modify_submission_errors' => 'check_submitted_post',
-                //'core.posting_modify_submit_post_after' => 'check_submitted_post',
                 'core.posting_modify_submit_post_before' => 'check_submitted_post'
                 
         );
@@ -72,11 +67,9 @@ class main_listener implements EventSubscriberInterface
     }
     public function check_submitted_post($event)
     {
-        // Unapprove this post. As far as I can see, because $event implements array access, but we need to change
-        // an item in an array inside it, we have to copy the data, modify it, and write it back, which seems
-        // a tad ugly. (It doesn't help that this is an array called $data inside an array called $data...)
-        // TODO: Is there a better way?
         $data = $event['data'];
+        // Whatever the post status was before, this will override it and mark it as
+        // unapproved.
         $data['force_approved_state'] = ITEM_UNAPPROVED;
         $event['data'] = $data;  
     }
