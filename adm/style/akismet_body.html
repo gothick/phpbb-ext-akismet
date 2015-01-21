@@ -1,0 +1,22 @@
+<!-- INCLUDE overall_header.html -->
+
+<h1>{L_SETTINGS}</h1>
+
+<form id="acp_board" method="post" action="{U_ACTION}">
+	<fieldset>
+		<dl>
+			<dt><label for="gothick_akismet_api_key">{L_ACP_AKISMET_API_KEY}</label></dt>
+			<dd><input type="text" name="gothick_akismet_api_key" id="gothick_akismet_api_key" value="{GOTHICK_AKISMET_API_KEY}" /></dd>
+			<dt><label for="gothick_akismet_url">{L_ACP_AKISMET_URL}</label></dt>
+			<dd><input type="text" name="gothick_akismet_url" id="gothick_akismet_url" value="{GOTHICK_AKISMET_URL}" /></dd>
+		</dl>
+
+		<p class="submit-buttons">
+			<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
+			<input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
+		</p>
+
+		{S_FORM_TOKEN}
+	</fieldset>
+</form>
+<!-- INCLUDE overall_footer.html -->

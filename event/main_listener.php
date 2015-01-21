@@ -8,8 +8,8 @@
  */
 namespace gothick\akismet\event;
 
-//TODO: Remove this when we've got a configuration interface
-require_once(__DIR__ . '/api_key.php');
+// TODO: Remove this when we've got a configuration interface
+require_once (__DIR__ . '/api_key.php');
 
 /**
  *
@@ -45,40 +45,51 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \phpbb\template\template */
 	protected $template;
-	
+
 	/* @var \phpbb\user */
 	protected $user;
-	
+
 	/* @var \phpbb\request\request */
 	protected $request;
 	
+	/* @var \phpbb\config\config */
+	protected $config;
+	
 	// vendor Akismet client library
 	protected $akismet;
-	
+
 	/**
 	 * Constructor
 	 *
 	 * @param \phpbb\controller\helper $helper
 	 *        	object
 	 * @param \phpbb\template $template        	
-	 * @param \phpbb\user $user    
-	 * @param \phpbb\request\request $request    	
+	 * @param \phpbb\user $user        	
+	 * @param \phpbb\request\request $request
+	 * @param \phpbb\config\config $request        	
 	 */
 	public function __construct (\phpbb\controller\helper $helper, 
-			\phpbb\template\template $template,
-	        \phpbb\user $user,
-	        \phpbb\request\request $request)
+			\phpbb\template\template $template, \phpbb\user $user, 
+			\phpbb\request\request $request,
+			\phpbb\config\config $config)
 	{
 		$this->helper = $helper;
 		$this->template = $template;
 		$this->user = $user;
-		//TODO: Remove $request when we don't need it to allow access to $_SERVER any more.
+		$this->config = $config;
+		
+		// TODO: Remove $request when we don't need it to allow access to
+		// $_SERVER any more.
 		// https://www.phpbb.com/community/viewtopic.php?f=461&t=2270496
 		$this->request = $request;
 		
 		// TODO: Should this be injected?
-		// TODO: Make API key configurable rather than hard-coded
-		$this->akismet = new Akismet(AKISMET_KEY, AKISMET_URL);
+		// TODO: Some kind of (quiet) error logging if the API key isn't set
+		if (isset($config['gothick_akismet_api_key']) &&
+				 isset($config['gothick_akismet_url'])) {
+			$this->akismet = new Akismet($config['gothick_akismet_api_key'], 
+					$config['gothick_akismet_url']);
+		}
 	}
 
 	public function load_language_on_setup ($event)
@@ -105,40 +116,61 @@ class main_listener implements EventSubscriberInterface
 
 	public function check_submitted_post ($event)
 	{
-	    $data = $event['data'];
-
-	    // Akismet fields
-	    $content = $data['message'];
-	    // TODO: Should we be using $data['poster_id'] instead? I think if we only check on
-	    // submission, then the current $user should be fine.
-	    // TODO: Only check on initial submission. not on edit. :D
-	    $email = $this->user->data['user_email'];
-	    // TODO: Grab actual name from profile if they've 
-	    // set it.
-	    $author = $this->user->data['username_clean'];
-	   
-	    // TODO: Might be useful for user's URL: https://www.phpbb.com/community/viewtopic.php?f=461&t=2267121&p=13760226&hilit=username#p13760226 
-	    // $this->profilefields->grab_profile_fields_data($user_id)
-	    
-	    // TODO: 
-	    $url = '';
-	    $permalink = '';
-	    
-	    // TODO: Figure out how we can use this nice Akismet library without having to re-enable $_SERVER access
-	    // in this hack.
-	    // https://www.phpbb.com/community/viewtopic.php?f=461&t=2270496
-	    $this->request->enable_super_globals();
-	    
-	    // 'forum-post' recommended for type: http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
-		$is_spam = $this->akismet->isSpam($content, $author, $email, $url, $permalink, 'forum-post');
-		
-		$this->request->disable_super_globals();
-		
-		if ($is_spam) {
-		    // Whatever the post status was before, this will override it and mark
-		    // it as unapproved.
-			$data['force_approved_state'] = ITEM_UNAPPROVED;
-			$event['data'] = $data;
+		// TODO: Some kind of (quiet) error logging if the Akismet object hasn't
+		// been
+		// created (might happen if API key isn't set.) Admin log?
+		if (isset($this->akismet)) {
+			
+			$data = $event['data'];
+			
+			// Akismet fields
+			$content = $data['message'];
+			// TODO: Should we be using $data['poster_id'] instead? I think if
+			// we only check on
+			// submission, then the current $user should be fine.
+			// TODO: Only check on initial submission. not on edit. :D
+			$email = $this->user->data['user_email'];
+			// TODO: Grab actual name from profile if they've
+			// set it.
+			$author = $this->user->data['username_clean'];
+			
+			// TODO: Might be useful for user's URL:
+			// https://www.phpbb.com/community/viewtopic.php?f=461&t=2267121&p=13760226&hilit=username#p13760226
+			// $this->profilefields->grab_profile_fields_data($user_id)
+			
+			// TODO:
+			$url = '';
+			$permalink = '';
+			
+			// TODO: Figure out how we can use this nice Akismet library without
+			// having to re-enable $_SERVER access
+			// in this hack.
+			// https://www.phpbb.com/community/viewtopic.php?f=461&t=2270496
+			$this->request->enable_super_globals();
+			
+			$is_spam = false;
+			try 
+			{
+				// 'forum-post' recommended for type:
+				// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
+				$is_spam = $this->akismet->isSpam($content, $author, $email, $url, 
+						$permalink, 'forum-post');
+			}
+			catch (\Exception $e) 
+			{
+				// If Akismet's down, or there's some other problem like that, we'll
+				// give the post the benefit of the doubt.
+				// TODO: Error logging. 
+			}
+			
+			$this->request->disable_super_globals();
+			
+			if ($is_spam) {
+				// Whatever the post status was before, this will override it
+				// and mark it as unapproved.
+				$data['force_approved_state'] = ITEM_UNAPPROVED;
+				$event['data'] = $data;
+			}
 		}
 	}
 }
