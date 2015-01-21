@@ -35,7 +35,6 @@ class main_listener implements EventSubscriberInterface
 	{
 		return array(
 				'core.user_setup' => 'load_language_on_setup',
-				'core.page_header' => 'add_page_header_link',
 				'core.posting_modify_submit_post_before' => 'check_submitted_post'
 		);
 	}
