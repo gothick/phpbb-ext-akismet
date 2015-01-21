@@ -155,6 +155,8 @@ class main_listener implements EventSubscriberInterface
 				$is_spam = $this->akismet->isSpam($content, $author, $email, $url, 
 						$permalink, 'forum-post');
 			}
+			//TODO: The Akismet class actually throws its own TijsVerkoyen\Akismet\Exception. Should
+			// we be checking for that/ 
 			catch (\Exception $e) 
 			{
 				// If Akismet's down, or there's some other problem like that, we'll
