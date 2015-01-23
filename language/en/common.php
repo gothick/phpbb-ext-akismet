@@ -26,4 +26,7 @@ $lang = array_merge($lang, array(
         'ACP_DEMO'					=> 'Settings',
         'ACP_DEMO_GOODBYE'			=> 'Should say goodbye?',
         'ACP_DEMO_SETTING_SAVED'	=> 'Settings have been saved successfully!',
+		'ACP_AKISMET_SETTINGS_CHANGED'	=> 'Akismet settings updated.',
+		
+		'AKISMET_DISAPPROVED'	=> 'Disapproved by Akismet check.'
 ));

@@ -15,7 +15,7 @@ class main_module
 
 	function main($id, $mode)
 	{
-		global $db, $user, $auth, $template, $cache, $request;
+		global $db, $user, $auth, $template, $cache, $request, $phpbb_log;
 		global $config, $phpbb_root_path, $phpbb_admin_path, $phpEx;
 
 		$user->add_lang('acp/common');
@@ -32,7 +32,9 @@ class main_module
 
 			$config->set('gothick_akismet_api_key', $request->variable('gothick_akismet_api_key', ''));
 			$config->set('gothick_akismet_url', $request->variable('gothick_akismet_url', ''));
-				
+
+			$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'ACP_AKISMET_SETTINGS_CHANGED');
+			
 			trigger_error($user->lang('GOTHICK_AKISMET_SETTING_SAVED') . adm_back_link($this->u_action));
 		}
 
