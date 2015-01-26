@@ -287,7 +287,16 @@ class main_listener implements EventSubscriberInterface
 				$event['data'] = $data;
 				
 				// Note our action in the moderation log
-				$log_message = $event['mode'] == 'reply' ? 'LOG_POST_DISAPPROVED' : 'LOG_TOPIC_DISAPPROVED';
+				if ($event['mode'] == 'post' ||
+						($event['mode'] == 'edit' &&
+						$data['topic_first_post_id'] == $data['post_id']))
+				{
+					$log_message = 'LOG_TOPIC_DISAPPROVED';
+				}
+				else
+				{
+					$log_message = 'LOG_POST_DISAPPROVED';
+				}
 				
 				$akismet_user_id = isset($this->akismet_user_data) ? $this->akismet_user_data['user_id'] : $this->user->data['user_id'];
 				$akismet_username = isset($this->akismet_user_data) ? $this->akismet_user_data['username'] : $this->user->data['username'];
