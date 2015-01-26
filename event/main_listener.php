@@ -199,10 +199,11 @@ class main_listener implements EventSubscriberInterface
 										 $this->user->data['user_id'],
 										'POST_TEXT' => $post_data['message']
 						));
-				// TODO: Internationalise "Forum spam detected from user", but
-				// bear in mind that this should be in
-				// the language of the *recipient* of this email, so we can't
-				// just use $user->lang['WHATEVER'].
+				// TODO: Issue #2: Internationalise "Forum spam detected from user". 
+				// Bear in mind that this should be internationalised to the 
+				// *recipient* of the email, i.e. the Akismet user, *not* 
+				// $this->user.
+				// https://github.com/gothick/phpbb-ext-akismet/issues/2
 				$this->messenger->subject(
 						'Forum spam detected from user ' .
 								 $this->user->data['username_clean']);
@@ -235,8 +236,6 @@ class main_listener implements EventSubscriberInterface
 			// submission, then the current $user should be fine.
 			// TODO: Only check on initial submission. not on edit. :D
 			$email = $this->user->data['user_email'];
-			// TODO: Grab actual name from profile if they've
-			// set it.
 			$author = $this->user->data['username_clean'];
 			
 			// TODO: Might be useful for user's URL:
@@ -248,9 +247,8 @@ class main_listener implements EventSubscriberInterface
 			$url = '';
 			$permalink = '';
 			
-			// TODO: Figure out how we can use this nice Akismet library without
-			// having to re-enable $_SERVER access
-			// in this hack.
+			// TODO: Issue #1: Should we find a way of avoiding enable_super_globals()?
+			// https://github.com/gothick/phpbb-ext-akismet/issues/1
 			// https://www.phpbb.com/community/viewtopic.php?f=461&t=2270496
 			$this->request->enable_super_globals();
 			
