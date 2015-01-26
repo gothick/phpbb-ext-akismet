@@ -16,13 +16,6 @@ namespace gothick\akismet\event;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- *
- * @ignore
- *
- */
-use TijsVerkoyen\Akismet\Akismet;
-
-/**
  * Event listener
  */
 class main_listener implements EventSubscriberInterface
@@ -100,15 +93,16 @@ class main_listener implements EventSubscriberInterface
 		// To allow super-globals when we call our third-party Akismet library.
 		$this->request = $request;
 		
-		// TODO: Some kind of (quiet) error logging if the API key isn't set
 		if (isset($config['gothick_akismet_api_key']) &&
-				 isset($config['gothick_akismet_url']))
+			isset($config['gothick_akismet_url']) &&
+			!empty($config['gothick_akismet_api_key']) &&
+			!empty($config['gothick_akismet_url']))
 		{
 			// Load our third-party library.
 			// TODO: This should probably be dependency-injected, but it needs
 			// the (runtime-configured) API key and URL as its construction
 			// parameters.
-			$this->akismet = new Akismet($config['gothick_akismet_api_key'], 
+			$this->akismet = new \TijsVerkoyen\Akismet\Akismet($config['gothick_akismet_api_key'], 
 					$config['gothick_akismet_url']);
 			
 			// We log, send mail, etc. as our Akismet user.
@@ -126,6 +120,11 @@ class main_listener implements EventSubscriberInterface
 					$this->messenger = new \messenger(false);
 				}
 			}
+		}
+		else 
+		{
+			$this->log->add('critical', ANONYMOUS, $this->user->data['session_ip'],
+					'AKISMET_NO_KEY_OR_URL_CONFIGURED');
 		}
 	}
 
@@ -154,8 +153,8 @@ class main_listener implements EventSubscriberInterface
 		// If, after all that, we're still using the anonymous user, log it as an issue.
 		if ($akismet_user_id == ANONYMOUS)
 		{
-			$this->log->add('admin', ANONYMOUS, $this->user->data['session_ip'], 
-					AKISMET_LOG_USING_ANONYMOUS_USER);
+			$this->log->add('critical', ANONYMOUS, $this->user->data['session_ip'], 
+					'AKISMET_LOG_USING_ANONYMOUS_USER');
 		}
 		return $akismet_user_data;
 	}
@@ -236,11 +235,6 @@ class main_listener implements EventSubscriberInterface
 
 	public function check_submitted_post ($event)
 	{
-		// TODO: Some kind of (quiet) error logging if the Akismet object hasn't
-		// been created (might happen if API key isn't set.) Admin log?
-		// Use
-		// https://github.com/ForumHulp/errorpages/blob/master/event/listener.php
-		// for logging example
 		if (isset($this->akismet))
 		{
 			// Skip the Akismet check for anyone who's a moderator or an administrator. If your
@@ -276,15 +270,13 @@ class main_listener implements EventSubscriberInterface
 					// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
 					$is_spam = $this->akismet->isSpam($content, $author, $email, 
 							$url, $permalink, 'forum-post');
-				} // TODO: The Akismet class actually throws its own
-				// TijsVerkoyen\Akismet\Exception. Should
-				// we be checking for that/
+				} 
 				catch (\Exception $e)
 				{
 					// If Akismet's down, or there's some other problem like that,
 					// we'll give the post the benefit of the doubt, but log a 
 					// warning.
-					$this->log->add('mod', $this->akismet_user_data['user_id'], 
+					$this->log->add('critical', $this->akismet_user_data['user_id'], 
 							$this->user->data['session_ip'], 
 							'AKISMET_LOG_CALL_FAILED', false, 
 							array(
