@@ -62,12 +62,13 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \TijsVerkoyen\Akismet */
 	protected $akismet;
- // Third-party client library
+	// Third-party client library
 	
+
 	/* @var \messenger */
 	protected $messenger;
 
-	protected $akismet_user_data;	
+	protected $akismet_user_data;
 
 	/**
 	 * Constructor
@@ -101,28 +102,38 @@ class main_listener implements EventSubscriberInterface
 		// TODO: Should this be injected?
 		// TODO: Some kind of (quiet) error logging if the API key isn't set
 		if (isset($config['gothick_akismet_api_key']) &&
-				 isset($config['gothick_akismet_url'])) {
+				 isset($config['gothick_akismet_url']))
+		{
 			$this->akismet = new Akismet($config['gothick_akismet_api_key'], 
 					$config['gothick_akismet_url']);
 			
-			// We log, send mail, etc. as our Akismet user, and we want the 
+			// We log, send mail, etc. as our Akismet user, and we want the
 			// results to be in their language, not the language of the user
-			// who's posting.  
-			if (isset($config['gothick_akismet_user_id'])) {
-				$akismet_user_id = filter_var($config['gothick_akismet_user_id'], FILTER_VALIDATE_INT);
-				if ($akismet_user_id !== false) {
-					// We load the Akismet user's common language file, plus this extension's
-					// langauge file. That way we can send emails/log messages in the target
-					// user's language, not the current user's language. 
-					$this->akismet_user_data = $user_loader->get_user($akismet_user_id, true);
+			// who's posting.
+			if (isset($config['gothick_akismet_user_id']))
+			{
+				$akismet_user_id = filter_var(
+						$config['gothick_akismet_user_id'], FILTER_VALIDATE_INT);
+				if ($akismet_user_id !== false)
+				{
+					// We load the Akismet user's common language file, plus
+					// this extension's
+					// langauge file. That way we can send emails/log messages
+					// in the target
+					// user's language, not the current user's language.
+					$this->akismet_user_data = $user_loader->get_user(
+							$akismet_user_id, true);
 				}
-			} else {
+			} else
+			{
 				// TODO: Should this be an error?
 			}
 			
 			// For email sending
-			if ($this->config['email_enable']) {
-				if (! class_exists('messenger')) {
+			if ($this->config['email_enable'])
+			{
+				if (! class_exists('messenger'))
+				{
 					global $phpbb_root_path, $phpEx;
 					include ($phpbb_root_path . 'includes/functions_messenger.' .
 							 $phpEx);
@@ -154,31 +165,55 @@ class main_listener implements EventSubscriberInterface
 				));
 	}
 
-	protected function send_mail($post_data)
+	protected function send_mail ($post_data)
 	{
-		if (isset($this->messenger)) 
+		// TODO: What we should *really* do for emails is to use something like
+		// a phpBB 3.1 version of a mod like Board Watch. Then someone else would do 
+		// the heavy lifting.
+		// However, it looks like if we want that, we'll have to do it ourselves:
+		// https://www.phpbb.com/customise/db/mod/board_watch/support/topic/131696
+		
+
+		// We may not have messenger, if, for example, the board has email
+		// disabled.
+		if (isset($this->messenger))
 		{
-			// If we have a nominated Akismet user, we send them an email to let them
+			// If we have a nominated Akismet user, we send them an email to let
+			// them
 			// know the message has been marked as spam:
 			if (isset($this->akismet_user_data))
 			{
-				$this->messenger->template('@gothick_akismet/message_marked_as_spam', $this->akismet_user_data['user_lang']);
-				$this->messenger->to($this->akismet_user_data['user_email'], $this->akismet_user_data['username']);
-				$this->messenger->im($this->akismet_user_data['user_jabber'], $this->akismet_user_data['username']);
-				$this->messenger->assign_vars(array(
-					'TOPIC_TITLE'	=> $post_data['topic_title'],
-					'POSTING_USER_USERNAME'	=> $this->user->data['username'],
-					'POSTING_USER_URL' => generate_board_url().'/memberlist.php?mode=viewprofile&u=' . $this->user->data['user_id'], 
-					'POST_TEXT' => $post_data['message']  
-				));
-				$this->messenger->subject('Forum spam detected from user ' . $this->user->data['username_clean']);
-				$this->messenger->headers('X-AntiAbuse: User IP - ' . $this->user->ip);
+				$this->messenger->template(
+						'@gothick_akismet/message_marked_as_spam', 
+						$this->akismet_user_data['user_lang']);
+				$this->messenger->to($this->akismet_user_data['user_email'], 
+						$this->akismet_user_data['username']);
+				$this->messenger->im($this->akismet_user_data['user_jabber'], 
+						$this->akismet_user_data['username']);
+				$this->messenger->assign_vars(
+						array(
+								'TOPIC_TITLE' => $post_data['topic_title'],
+								'POSTING_USER_USERNAME' => $this->user->data['username'],
+								'POSTING_USER_URL' => generate_board_url() .
+										 '/memberlist.php?mode=viewprofile&u=' .
+										 $this->user->data['user_id'],
+										'POST_TEXT' => $post_data['message']
+						));
+				// TODO: Internationalise "Forum spam detected from user", but
+				// bear in mind that this should be in
+				// the language of the *recipient* of this email, so we can't
+				// just use $user->lang['WHATEVER'].
+				$this->messenger->subject(
+						'Forum spam detected from user ' .
+								 $this->user->data['username_clean']);
+				$this->messenger->headers(
+						'X-AntiAbuse: User IP - ' . $this->user->ip);
 				
-				$this->messenger->send($this->akismet_user_data['user_notify_type']);
+				$this->messenger->send(
+						$this->akismet_user_data['user_notify_type']);
 				$this->messenger->save_queue();
-				
 			}
-		} 
+		}
 	}
 
 	public function check_submitted_post ($event)
@@ -188,7 +223,7 @@ class main_listener implements EventSubscriberInterface
 		// Use
 		// https://github.com/ForumHulp/errorpages/blob/master/event/listener.php
 		// for logging example
-		if (isset($this->akismet)) 
+		if (isset($this->akismet))
 		{
 			
 			$data = $event['data'];
@@ -208,6 +243,7 @@ class main_listener implements EventSubscriberInterface
 			// https://www.phpbb.com/community/viewtopic.php?f=461&t=2267121&p=13760226&hilit=username#p13760226
 			// $this->profilefields->grab_profile_fields_data($user_id)
 			
+
 			// TODO: URL and permalink parameters
 			$url = '';
 			$permalink = '';
@@ -219,15 +255,17 @@ class main_listener implements EventSubscriberInterface
 			$this->request->enable_super_globals();
 			
 			$is_spam = false;
-			try {
+			try
+			{
 				// 'forum-post' recommended for type:
 				// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
 				$is_spam = $this->akismet->isSpam($content, $author, $email, 
 						$url, $permalink, 'forum-post');
-			}			// TODO: The Akismet class actually throws its own
+			} // TODO: The Akismet class actually throws its own
 			// TijsVerkoyen\Akismet\Exception. Should
 			// we be checking for that/
-			catch (\Exception $e) {
+			catch (\Exception $e)
+			{
 				// If Akismet's down, or there's some other problem like that,
 				// we'll give the post the benefit of the doubt.
 				// TODO: Log warning
@@ -235,7 +273,8 @@ class main_listener implements EventSubscriberInterface
 			
 			$this->request->disable_super_globals();
 			
-			if ($is_spam) {
+			if ($is_spam)
+			{
 				// Whatever the post status was before, this will override it
 				// and mark it as unapproved.
 				$data['force_approved_state'] = ITEM_UNAPPROVED;
@@ -247,17 +286,26 @@ class main_listener implements EventSubscriberInterface
 				$akismet_user_id = isset($this->akismet_user_data) ? $this->akismet_user_data['user_id'] : $this->user->data['user_id'];
 				$akismet_username = isset($this->akismet_user_data) ? $this->akismet_user_data['username'] : $this->user->data['username'];
 				
-				$this->log->add('mod', $this->akismet_user_data['user_id'],
-						$this->user->data['session_ip'], $log_message, false,  // Logger will provide the time
+				$this->log->add('mod', $this->akismet_user_data['user_id'], 
+						$this->user->data['session_ip'], $log_message, false,  // Logger
+						// will
+						// provide the
+						// time
 						array(
 								$data['topic_title'],
-								// TODO: We should log in the language of the nominated Akismet user. This has
-								// been a nightmare to figure out, though, and got very messy, so we're just 
-								// going to log stuff in the language of the posting user for now. This 
-								// should be okay for most boards, as it's only in multilingual boards 
-								// where the user's language would be different from a board admin's 
-								// language. Revisit when (if?) phpBB makes this easier. 
-								$this->user->lang('AKISMET_DISAPPROVED'), 
+								// TODO: We should log in the language of the
+								// nominated Akismet user. This has
+								// been a nightmare to figure out, though, and
+								// got very messy, so we're just
+								// going to log stuff in the language of the
+								// posting user for now. This
+								// should be okay for most boards, as it's only
+								// in multilingual boards
+								// where the user's language would be different
+								// from a board admin's
+								// language. Revisit when (if?) phpBB makes this
+								// easier.
+								$this->user->lang('AKISMET_DISAPPROVED'),
 								$this->user->data['username']
 						));
 				
