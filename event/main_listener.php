@@ -237,17 +237,14 @@ class main_listener implements EventSubscriberInterface
 			// TODO: Only check on initial submission. not on edit. :D
 			$email = $this->user->data['user_email'];
 			$author = $this->user->data['username_clean'];
-				
-			// TODO: Might be useful for user's URL:
-			// https://www.phpbb.com/community/viewtopic.php?f=461&t=2267121&p=13760226&hilit=username#p13760226
-			// $this->profilefields->grab_profile_fields_data($user_id)
+
+			// URL of poster, i.e. poster's "website" profile field.
 			$this->user->get_profile_fields($this->user->data['user_id']);
-			// URL of poster, i.e. poster's "website" profile field. 
 			$url = isset($this->user->profile_fields['pf_phpbb_website']) ? $this->user->profile_fields['pf_phpbb_website'] : '' ;
 			
-			//TODO: Permalink to topic
-			$permalink = '';
-			
+			// URL of topic
+			global $phpEx;
+			$permalink = generate_board_url() . '/' . append_sid("viewtopic.$phpEx", "t={$data['topic_id']}" , true, '');
 			
 			// TODO: Issue #1: Should we find a way of avoiding enable_super_globals()?
 			// https://github.com/gothick/phpbb-ext-akismet/issues/1
