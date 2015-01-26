@@ -28,6 +28,8 @@ class main_module
 				trigger_error('FORM_INVALID');
 			}
 			
+			// TODO: Verify API key using Akismet library's "verifyKey" method
+			
 			$config->set('gothick_akismet_api_key', 
 					$request->variable('gothick_akismet_api_key', ''));
 			$config->set('gothick_akismet_url', 
