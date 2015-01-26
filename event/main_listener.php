@@ -251,8 +251,6 @@ class main_listener implements EventSubscriberInterface
 				
 				// Akismet fields
 				$content = $data['message'];
-				// TODO: Should we be using $data['poster_id'] instead? I think if
-				// we only check on submission, then the current $user should be fine.
 				$email = $this->user->data['user_email'];
 				$author = $this->user->data['username_clean'];
 				
