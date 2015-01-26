@@ -265,8 +265,16 @@ class main_listener implements EventSubscriberInterface
 			catch (\Exception $e)
 			{
 				// If Akismet's down, or there's some other problem like that,
-				// we'll give the post the benefit of the doubt.
-				// TODO: Log warning
+				// we'll give the post the benefit of the doubt, but log a 
+				// warning.
+				$this->log->add('mod', 
+						$this->akismet_user_data['user_id'], 
+						$this->user->data['session_ip'], 
+						'AKISMET_LOG_CALL_FAILED', 
+						false,
+						array (
+							$e->getMessage()	
+						) );
 			}
 			
 			$this->request->disable_super_globals();

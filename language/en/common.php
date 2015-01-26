@@ -18,7 +18,7 @@ if (empty($lang) || !is_array($lang))
 }
 
 $lang = array_merge($lang, array(
-		'ACP_AKISMET_SETTINGS_CHANGED'	=> 'Akismet settings updated.',
-		
-		'AKISMET_DISAPPROVED'	=> 'Disapproved by Akismet check.'
+		'ACP_AKISMET_SETTINGS_CHANGED'	=> 'Akismet settings updated.',		
+		'AKISMET_DISAPPROVED'	=> 'Disapproved by Akismet check.',
+		'AKISMET_LOG_CALL_FAILED'	=> 'Call to Akismet API failed: %1$s' 
 ));
