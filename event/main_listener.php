@@ -8,9 +8,6 @@
  */
 namespace gothick\akismet\event;
 
-// TODO: Remove this when we've got a configuration interface
-require_once (__DIR__ . '/api_key.php');
-
 /**
  *
  * @ignore
