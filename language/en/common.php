@@ -20,5 +20,6 @@ if (empty($lang) || !is_array($lang))
 $lang = array_merge($lang, array(
 		'ACP_AKISMET_SETTINGS_CHANGED'	=> 'Akismet settings updated.',		
 		'AKISMET_DISAPPROVED'	=> 'Disapproved by Akismet check.',
-		'AKISMET_LOG_CALL_FAILED'	=> 'Call to Akismet API failed: %1$s' 
+		'AKISMET_LOG_CALL_FAILED'	=> '<strong>Call to Akismet API failed</strong><br />» %1$s',
+		'AKISMET_LOG_USING_ANONYMOUS_USER' => "<strong>Using anonymous user for Gothick Akismet</strong><br />» Check the Extension's settings"
 ));

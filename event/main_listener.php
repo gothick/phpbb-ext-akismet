@@ -90,39 +90,24 @@ class main_listener implements EventSubscriberInterface
 		$this->config = $config;
 		$this->log = $log;
 		$this->user_loader = $user_loader;
-
-		// To allow super-globals when we call our third-party Akismet library.
-		$this->request = $request; 
 		
-		// TODO: Should this be injected?
+		// To allow super-globals when we call our third-party Akismet library.
+		$this->request = $request;
+		
 		// TODO: Some kind of (quiet) error logging if the API key isn't set
 		if (isset($config['gothick_akismet_api_key']) &&
 				 isset($config['gothick_akismet_url']))
 		{
+			// Load our third-party library.
+			// TODO: This should probably be dependency-injected, but it needs
+			// the (runtime-configured) API key and URL as its construction
+			// parameters.
 			$this->akismet = new Akismet($config['gothick_akismet_api_key'], 
 					$config['gothick_akismet_url']);
 			
-			// We log, send mail, etc. as our Akismet user, and we want the
-			// results to be in their language, not the language of the user
-			// who's posting.
-			if (isset($config['gothick_akismet_user_id']))
-			{
-				$akismet_user_id = filter_var(
-						$config['gothick_akismet_user_id'], FILTER_VALIDATE_INT);
-				if ($akismet_user_id !== false)
-				{
-					// We load the Akismet user's common language file, plus
-					// this extension's
-					// langauge file. That way we can send emails/log messages
-					// in the target
-					// user's language, not the current user's language.
-					$this->akismet_user_data = $user_loader->get_user(
-							$akismet_user_id, true);
-				}
-			} else
-			{
-				// TODO: Should this be an error?
-			}
+			// We log, send mail, etc. as our Akismet user.
+			$this->akismet_user_data = $this->get_akismet_user_data(
+					$config['gothick_akismet_user_id']);
 			
 			// For email sending
 			if ($this->config['email_enable'])
@@ -136,6 +121,37 @@ class main_listener implements EventSubscriberInterface
 				}
 			}
 		}
+	}
+
+	protected function get_akismet_user_data ($user_id)
+	{
+		// We default to the anonymous user as a fallback
+		$akismet_user_id = ANONYMOUS;
+		
+		// But if there's a user configured in the Extension settings, we try
+		// to use it instead.
+		if (isset($user_id))
+		{
+			$better_akismet_user_id = filter_var($user_id, FILTER_VALIDATE_INT);
+			if ($better_akismet_user_id !== false)
+			{
+				$akismet_user_id = $better_akismet_user_id;
+			}
+		}
+		
+		// get_user() will fall back to ANONYMOUS if the user doesn't exist...
+		$akismet_user_data = $this->user_loader->get_user($akismet_user_id, 
+				true);
+		// ...so we may end up with a different user_id from the one we asked for
+		$akismet_user_id = $akismet_user_data['user_id'];
+		
+		// If, after all that, we're still using the anonymous user, log it as an issue.
+		if ($akismet_user_id == ANONYMOUS)
+		{
+			$this->log->add('admin', ANONYMOUS, $this->user->data['session_ip'], 
+					AKISMET_LOG_USING_ANONYMOUS_USER);
+		}
+		return $akismet_user_data;
 	}
 
 	public function load_language_on_setup ($event)
@@ -221,7 +237,6 @@ class main_listener implements EventSubscriberInterface
 		// for logging example
 		if (isset($this->akismet))
 		{
-			
 			$data = $event['data'];
 			
 			// Akismet fields
@@ -230,14 +245,16 @@ class main_listener implements EventSubscriberInterface
 			// we only check on submission, then the current $user should be fine.
 			$email = $this->user->data['user_email'];
 			$author = $this->user->data['username_clean'];
-
+			
 			// URL of poster, i.e. poster's "website" profile field.
 			$this->user->get_profile_fields($this->user->data['user_id']);
-			$url = isset($this->user->profile_fields['pf_phpbb_website']) ? $this->user->profile_fields['pf_phpbb_website'] : '' ;
+			$url = isset($this->user->profile_fields['pf_phpbb_website']) ? $this->user->profile_fields['pf_phpbb_website'] : '';
 			
 			// URL of topic
 			global $phpEx;
-			$permalink = generate_board_url() . '/' . append_sid("viewtopic.$phpEx", "t={$data['topic_id']}" , true, '');
+			$permalink = generate_board_url() . '/' .
+					 append_sid("viewtopic.$phpEx", "t={$data['topic_id']}", 
+							true, '');
 			
 			// TODO: Issue #1: Should we find a way of avoiding enable_super_globals()?
 			// https://github.com/gothick/phpbb-ext-akismet/issues/1
@@ -259,14 +276,12 @@ class main_listener implements EventSubscriberInterface
 				// If Akismet's down, or there's some other problem like that,
 				// we'll give the post the benefit of the doubt, but log a 
 				// warning.
-				$this->log->add('mod', 
-						$this->akismet_user_data['user_id'], 
+				$this->log->add('mod', $this->akismet_user_data['user_id'], 
 						$this->user->data['session_ip'], 
-						'AKISMET_LOG_CALL_FAILED', 
-						false,
-						array (
-							$e->getMessage()	
-						) );
+						'AKISMET_LOG_CALL_FAILED', false, 
+						array(
+								$e->getMessage()
+						));
 			}
 			
 			$this->request->disable_super_globals();
@@ -279,25 +294,20 @@ class main_listener implements EventSubscriberInterface
 				$event['data'] = $data;
 				
 				// Note our action in the moderation log
-				if ($event['mode'] == 'post' ||
-						($event['mode'] == 'edit' &&
-						$data['topic_first_post_id'] == $data['post_id']))
+				if ($event['mode'] == 'post' || ($event['mode'] == 'edit' &&
+						 $data['topic_first_post_id'] == $data['post_id']))
 				{
 					$log_message = 'LOG_TOPIC_DISAPPROVED';
-				}
-				else
+				} else
 				{
 					$log_message = 'LOG_POST_DISAPPROVED';
 				}
 				
-				$akismet_user_id = isset($this->akismet_user_data) ? $this->akismet_user_data['user_id'] : $this->user->data['user_id'];
-				$akismet_username = isset($this->akismet_user_data) ? $this->akismet_user_data['username'] : $this->user->data['username'];
+				$akismet_user_id = $this->akismet_user_data['user_id'];
+				$akismet_username = $this->akismet_user_data['username'];
 				
-				$this->log->add('mod', $this->akismet_user_data['user_id'], 
-						$this->user->data['session_ip'], $log_message, false,  // Logger
-						// will
-						// provide the
-						// time
+				$this->log->add('mod', $akismet_user_id, 
+						$this->user->data['session_ip'], $log_message, false,
 						array(
 								$data['topic_title'],
 								// TODO: We should log in the language of the
