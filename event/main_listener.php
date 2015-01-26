@@ -56,6 +56,9 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \phpbb\user_loader */
 	protected $user_loader;
+	
+	/* @var \phpbb\auth\auth */
+	protected $auth;
 
 	/* @var \TijsVerkoyen\Akismet */
 	protected $akismet;
@@ -77,12 +80,14 @@ class main_listener implements EventSubscriberInterface
 	 * @param \phpbb\request\request $request        	
 	 * @param \phpbb\config\config $request        	
 	 * @param \phpbb\log\log $log        	
-	 * @param \phpbb\user_loader $user_loader        	
+	 * @param \phpbb\user_loader $user_loader     
+	 * @param \phpbb\auth\auth $auth   	
 	 */
 	public function __construct (\phpbb\controller\helper $helper, 
 			\phpbb\template\template $template, \phpbb\user $user, 
 			\phpbb\request\request $request, \phpbb\config\config $config, 
-			\phpbb\log\log $log, \phpbb\user_loader $user_loader)
+			\phpbb\log\log $log, \phpbb\user_loader $user_loader,
+			\phpbb\auth\auth $auth)
 	{
 		$this->helper = $helper;
 		$this->template = $template;
@@ -90,6 +95,7 @@ class main_listener implements EventSubscriberInterface
 		$this->config = $config;
 		$this->log = $log;
 		$this->user_loader = $user_loader;
+		$this->auth = $auth;
 		
 		// To allow super-globals when we call our third-party Akismet library.
 		$this->request = $request;
@@ -237,96 +243,101 @@ class main_listener implements EventSubscriberInterface
 		// for logging example
 		if (isset($this->akismet))
 		{
-			$data = $event['data'];
+			// Skip the Akismet check for anyone who's a moderator or an administrator. If your
+			// admins and moderators are posting spam, you've got bigger problems...
+			if (!($this->auth->acl_getf_global('m_') || $this->auth->acl_getf_global('a_'))) {
 			
-			// Akismet fields
-			$content = $data['message'];
-			// TODO: Should we be using $data['poster_id'] instead? I think if
-			// we only check on submission, then the current $user should be fine.
-			$email = $this->user->data['user_email'];
-			$author = $this->user->data['username_clean'];
-			
-			// URL of poster, i.e. poster's "website" profile field.
-			$this->user->get_profile_fields($this->user->data['user_id']);
-			$url = isset($this->user->profile_fields['pf_phpbb_website']) ? $this->user->profile_fields['pf_phpbb_website'] : '';
-			
-			// URL of topic
-			global $phpEx;
-			$permalink = generate_board_url() . '/' .
-					 append_sid("viewtopic.$phpEx", "t={$data['topic_id']}", 
-							true, '');
-			
-			// TODO: Issue #1: Should we find a way of avoiding enable_super_globals()?
-			// https://github.com/gothick/phpbb-ext-akismet/issues/1
-			// https://www.phpbb.com/community/viewtopic.php?f=461&t=2270496
-			$this->request->enable_super_globals();
-			
-			$is_spam = false;
-			try
-			{
-				// 'forum-post' recommended for type:
-				// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
-				$is_spam = $this->akismet->isSpam($content, $author, $email, 
-						$url, $permalink, 'forum-post');
-			} // TODO: The Akismet class actually throws its own
-			// TijsVerkoyen\Akismet\Exception. Should
-			// we be checking for that/
-			catch (\Exception $e)
-			{
-				// If Akismet's down, or there's some other problem like that,
-				// we'll give the post the benefit of the doubt, but log a 
-				// warning.
-				$this->log->add('mod', $this->akismet_user_data['user_id'], 
-						$this->user->data['session_ip'], 
-						'AKISMET_LOG_CALL_FAILED', false, 
-						array(
-								$e->getMessage()
-						));
-			}
-			
-			$this->request->disable_super_globals();
-			
-			if ($is_spam)
-			{
-				// Whatever the post status was before, this will override it
-				// and mark it as unapproved.
-				$data['force_approved_state'] = ITEM_UNAPPROVED;
-				$event['data'] = $data;
+				$data = $event['data'];
 				
-				// Note our action in the moderation log
-				if ($event['mode'] == 'post' || ($event['mode'] == 'edit' &&
-						 $data['topic_first_post_id'] == $data['post_id']))
+				// Akismet fields
+				$content = $data['message'];
+				// TODO: Should we be using $data['poster_id'] instead? I think if
+				// we only check on submission, then the current $user should be fine.
+				$email = $this->user->data['user_email'];
+				$author = $this->user->data['username_clean'];
+				
+				// URL of poster, i.e. poster's "website" profile field.
+				$this->user->get_profile_fields($this->user->data['user_id']);
+				$url = isset($this->user->profile_fields['pf_phpbb_website']) ? $this->user->profile_fields['pf_phpbb_website'] : '';
+				
+				// URL of topic
+				global $phpEx;
+				$permalink = generate_board_url() . '/' .
+						 append_sid("viewtopic.$phpEx", "t={$data['topic_id']}", 
+								true, '');
+				
+				// TODO: Issue #1: Should we find a way of avoiding enable_super_globals()?
+				// https://github.com/gothick/phpbb-ext-akismet/issues/1
+				// https://www.phpbb.com/community/viewtopic.php?f=461&t=2270496
+				$this->request->enable_super_globals();
+				
+				$is_spam = false;
+				try
 				{
-					$log_message = 'LOG_TOPIC_DISAPPROVED';
-				} else
+					// 'forum-post' recommended for type:
+					// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
+					$is_spam = $this->akismet->isSpam($content, $author, $email, 
+							$url, $permalink, 'forum-post');
+				} // TODO: The Akismet class actually throws its own
+				// TijsVerkoyen\Akismet\Exception. Should
+				// we be checking for that/
+				catch (\Exception $e)
 				{
-					$log_message = 'LOG_POST_DISAPPROVED';
+					// If Akismet's down, or there's some other problem like that,
+					// we'll give the post the benefit of the doubt, but log a 
+					// warning.
+					$this->log->add('mod', $this->akismet_user_data['user_id'], 
+							$this->user->data['session_ip'], 
+							'AKISMET_LOG_CALL_FAILED', false, 
+							array(
+									$e->getMessage()
+							));
 				}
 				
-				$akismet_user_id = $this->akismet_user_data['user_id'];
-				$akismet_username = $this->akismet_user_data['username'];
+				$this->request->disable_super_globals();
 				
-				$this->log->add('mod', $akismet_user_id, 
-						$this->user->data['session_ip'], $log_message, false,
-						array(
-								$data['topic_title'],
-								// TODO: We should log in the language of the
-								// nominated Akismet user. This has
-								// been a nightmare to figure out, though, and
-								// got very messy, so we're just
-								// going to log stuff in the language of the
-								// posting user for now. This
-								// should be okay for most boards, as it's only
-								// in multilingual boards
-								// where the user's language would be different
-								// from a board admin's
-								// language. Revisit when (if?) phpBB makes this
-								// easier.
-								$this->user->lang('AKISMET_DISAPPROVED'),
-								$this->user->data['username']
-						));
-				
-				$this->send_mail($data);
+				if ($is_spam)
+				{
+					// Whatever the post status was before, this will override it
+					// and mark it as unapproved.
+					$data['force_approved_state'] = ITEM_UNAPPROVED;
+					$event['data'] = $data;
+					
+					// Note our action in the moderation log
+					if ($event['mode'] == 'post' || ($event['mode'] == 'edit' &&
+							 $data['topic_first_post_id'] == $data['post_id']))
+					{
+						$log_message = 'LOG_TOPIC_DISAPPROVED';
+					} else
+					{
+						$log_message = 'LOG_POST_DISAPPROVED';
+					}
+					
+					$akismet_user_id = $this->akismet_user_data['user_id'];
+					$akismet_username = $this->akismet_user_data['username'];
+					
+					$this->log->add('mod', $akismet_user_id, 
+							$this->user->data['session_ip'], $log_message, false,
+							array(
+									$data['topic_title'],
+									// TODO: We should log in the language of the
+									// nominated Akismet user. This has
+									// been a nightmare to figure out, though, and
+									// got very messy, so we're just
+									// going to log stuff in the language of the
+									// posting user for now. This
+									// should be okay for most boards, as it's only
+									// in multilingual boards
+									// where the user's language would be different
+									// from a board admin's
+									// language. Revisit when (if?) phpBB makes this
+									// easier.
+									$this->user->lang('AKISMET_DISAPPROVED'),
+									$this->user->data['username']
+							));
+					
+					$this->send_mail($data);
+				}
 			}
 		}
 	}

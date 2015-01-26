@@ -16,5 +16,6 @@ services:
       - @config
       - @log
       - @user_loader
+      - @auth
     tags:
       - { name: event.listener }
