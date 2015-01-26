@@ -15,10 +15,10 @@ class main_info
 	{
 		return array(
 			'filename'	=> '\gothick\akismet\acp\main_module',
-			'title'		=> 'GOTHICK_AKISMET_TITLE',
-			'version'	=> '1.0.0',
+			'title'		=> 'ACP_AKISMET_TITLE',
+			'version'	=> '1.0.1',
 			'modes'		=> array(
-				'settings'	=> array('title' => 'GOTHICK_AKISMET', 'auth' => 'ext_gothick/akismet && acl_a_board', 'cat' => array('GOTHICK_AKISMET_TITLE')),
+				'settings'	=> array('title' => 'ACP_AKISMET_SETTINGS', 'auth' => 'ext_gothick/akismet && acl_a_board', 'cat' => array('ACP_AKISMET_TITLE')),
 			),
 		);
 	}

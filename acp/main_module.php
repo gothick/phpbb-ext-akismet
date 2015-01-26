@@ -20,7 +20,7 @@ class main_module
 		
 		$user->add_lang('acp/common');
 		$this->tpl_name = 'akismet_body';
-		$this->page_title = $user->lang('GOTHICK_AKISMET_TITLE');
+		$this->page_title = $user->lang('ACP_AKISMET_TITLE');
 		add_form_key('gothick/akismet');
 		
 		if ($request->is_set_post('submit'))
@@ -31,12 +31,8 @@ class main_module
 			}
 			
 			// TODO: Verify API key using Akismet library's "verifyKey" method
-			
-
 			$config->set('gothick_akismet_api_key', 
 					$request->variable('gothick_akismet_api_key', ''));
-			$config->set('gothick_akismet_url', 
-					$request->variable('gothick_akismet_url', ''));
 			
 			$username = utf8_normalize_nfc(
 					request_var('gothick_akismet_username', '', true));
@@ -59,10 +55,10 @@ class main_module
 			}
 			
 			$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 
-					'ACP_AKISMET_SETTINGS_CHANGED');
+					'ACP_AKISMET_SETTING_CHANGED');
 			
 			trigger_error(
-					$user->lang('GOTHICK_AKISMET_SETTING_SAVED') .
+					$user->lang('ACP_AKISMET_SETTING_SAVED') .
 							 adm_back_link($this->u_action));
 		}
 		
@@ -90,7 +86,6 @@ class main_module
 				array(
 						'U_ACTION' => $this->u_action,
 						'GOTHICK_AKISMET_API_KEY' => $config['gothick_akismet_api_key'],
-						'GOTHICK_AKISMET_URL' => $config['gothick_akismet_url'],
 						'GOTHICK_AKISMET_USERNAME' => $username
 				));
 	}

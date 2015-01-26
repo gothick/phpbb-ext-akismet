@@ -93,17 +93,14 @@ class main_listener implements EventSubscriberInterface
 		// To allow super-globals when we call our third-party Akismet library.
 		$this->request = $request;
 		
-		if (isset($config['gothick_akismet_api_key']) &&
-			isset($config['gothick_akismet_url']) &&
-			!empty($config['gothick_akismet_api_key']) &&
-			!empty($config['gothick_akismet_url']))
+		if (!empty($config['gothick_akismet_api_key'])) 
 		{
 			// Load our third-party library.
 			// TODO: This should probably be dependency-injected, but it needs
 			// the (runtime-configured) API key and URL as its construction
 			// parameters.
 			$this->akismet = new \TijsVerkoyen\Akismet\Akismet($config['gothick_akismet_api_key'], 
-					$config['gothick_akismet_url']);
+					generate_board_url());
 			
 			// We log, send mail, etc. as our Akismet user.
 			$this->akismet_user_data = $this->get_akismet_user_data(
@@ -124,7 +121,7 @@ class main_listener implements EventSubscriberInterface
 		else 
 		{
 			$this->log->add('critical', ANONYMOUS, $this->user->data['session_ip'],
-					'AKISMET_NO_KEY_OR_URL_CONFIGURED');
+					'AKISMET_NO_KEY_CONFIGURED');
 		}
 	}
 

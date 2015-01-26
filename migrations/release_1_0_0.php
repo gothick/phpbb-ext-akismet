@@ -26,7 +26,6 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 	{
 		return array(
 			array('config.add', array('gothick_akismet_api_key', '')),
-			array('config.add', array('gothick_akismet_url', '')),
 
 			array('module.add', array(
 				'acp',

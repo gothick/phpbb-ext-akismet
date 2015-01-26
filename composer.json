@@ -18,7 +18,7 @@
       "tijsverkoyen/akismet": "dev-master"
    },
    "extra": {
-      "display-name": "Akismet Anti-Spam Extension",
+      "display-name": "Gothick Akismet Anti-Spam Extension",
       "soft-require" : {
          "phpbb/phpbb": ">=3.1.0-RC2,<3.2.*@dev"
       }
