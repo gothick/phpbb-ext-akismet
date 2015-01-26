@@ -93,11 +93,9 @@ class main_listener implements EventSubscriberInterface
 		$this->config = $config;
 		$this->log = $log;
 		$this->user_loader = $user_loader;
-		
-		// TODO: Remove $request when we don't need it to allow access to
-		// $_SERVER any more.
-		// https://www.phpbb.com/community/viewtopic.php?f=461&t=2270496
-		$this->request = $request;
+
+		// To allow super-globals when we call our third-party Akismet library.
+		$this->request = $request; 
 		
 		// TODO: Should this be injected?
 		// TODO: Some kind of (quiet) error logging if the API key isn't set
@@ -232,9 +230,7 @@ class main_listener implements EventSubscriberInterface
 			// Akismet fields
 			$content = $data['message'];
 			// TODO: Should we be using $data['poster_id'] instead? I think if
-			// we only check on
-			// submission, then the current $user should be fine.
-			// TODO: Only check on initial submission. not on edit. :D
+			// we only check on submission, then the current $user should be fine.
 			$email = $this->user->data['user_email'];
 			$author = $this->user->data['username_clean'];
 
