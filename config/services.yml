@@ -2,8 +2,6 @@ services:
   gothick.akismet.listener:
     class: gothick\akismet\event\main_listener
     arguments:
-      - @controller.helper
-      - @template
       - @user
       - @request
       - @config

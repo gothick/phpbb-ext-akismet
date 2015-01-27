@@ -30,12 +30,6 @@ class main_listener implements EventSubscriberInterface
 		);
 	}
 
-	/* @var \phpbb\controller\helper */
-	protected $helper;
-
-	/* @var \phpbb\template\template */
-	protected $template;
-
 	/* @var \phpbb\user */
 	protected $user;
 
@@ -62,7 +56,7 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \messenger */
 	protected $messenger;
- 
+
 	protected $php_ext;
 
 	protected $root_path;
@@ -79,9 +73,6 @@ class main_listener implements EventSubscriberInterface
 	 * Heavy lifting is done only if the user actually tries
 	 * to post a message.
 	 *
-	 * @param \phpbb\controller\helper $helper
-	 *        	object
-	 * @param \phpbb\template $template        	
 	 * @param \phpbb\user $user        	
 	 * @param \phpbb\request\request $request        	
 	 * @param \phpbb\config\config $request        	
@@ -91,16 +82,13 @@ class main_listener implements EventSubscriberInterface
 	 * @param string $php_ext        	
 	 * @param string $root_path        	
 	 */
-	public function __construct (\phpbb\controller\helper $helper, 
-			\phpbb\template\template $template, \phpbb\user $user, 
+	public function __construct (\phpbb\user $user, 
 			\phpbb\request\request $request, \phpbb\config\config $config, 
 			\phpbb\log\log $log, \phpbb\user_loader $user_loader, 
 			\phpbb\auth\auth $auth, 
 			\Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container, 
 			$php_ext, $root_path)
 	{
-		$this->helper = $helper;
-		$this->template = $template;
 		$this->user = $user;
 		$this->config = $config;
 		$this->log = $log;
@@ -307,7 +295,7 @@ class main_listener implements EventSubscriberInterface
 		{
 			if ($this->prepare_for_akismet())
 			{
-			
+				
 				$data = $event['data'];
 				
 				// Akismet fields
