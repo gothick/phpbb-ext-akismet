@@ -41,7 +41,7 @@ class akismet_module
 			$sql = 'SELECT user_id
 				FROM ' . USERS_TABLE . "
 				WHERE username_clean = '" .
-					 $db->sql_escape(utf8_clean_string($username)) . "'";
+					$db->sql_escape(utf8_clean_string($username)) . "'";
 			$result = $db->sql_query($sql);
 			$user_id = (int) $db->sql_fetchfield('user_id');
 			$db->sql_freeresult($result);
@@ -62,7 +62,7 @@ class akismet_module
 
 			trigger_error(
 					$user->lang('ACP_AKISMET_SETTING_SAVED') .
-							 adm_back_link($this->u_action));
+							adm_back_link($this->u_action));
 		}
 
 		$username = '';
@@ -73,7 +73,7 @@ class akismet_module
 			if ($user_id !== false)
 			{
 				$sql = 'SELECT u.username FROM ' . USERS_TABLE .
-						 ' u WHERE u.user_id = ' . $user_id;
+						' u WHERE u.user_id = ' . $user_id;
 				$result = $db->sql_query_limit($sql, 1);
 				$user_row = $db->sql_fetchrow($result);
 				$db->sql_freeresult($result);

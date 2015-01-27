@@ -14,48 +14,48 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 	public function effectively_installed ()
 	{
 		return isset($this->config['gothick_akismet_api_key']) &&
-				 isset($this->config['gothick_akismet_url']);
+			isset($this->config['gothick_akismet_url']);
 	}
 
 	static public function depends_on ()
 	{
 		return array(
-				'\phpbb\db\migration\data\v310\alpha2'
+					'\phpbb\db\migration\data\v310\alpha2'
 		);
 	}
 
 	public function update_data ()
 	{
 		return array(
-				array(
+					array(
 						'config.add',
 						array(
-								'gothick_akismet_api_key',
-								''
+							'gothick_akismet_api_key',
+							''
 						)
-				),
+					),
 
-				array(
+					array(
 						'module.add',
 						array(
-								'acp',
-								'ACP_CAT_DOT_MODS',
-								'ACP_AKISMET_TITLE'
+							'acp',
+							'ACP_CAT_DOT_MODS',
+							'ACP_AKISMET_TITLE'
 						)
-				),
-				array(
+					),
+					array(
 						'module.add',
 						array(
-								'acp',
-								'ACP_AKISMET_TITLE',
-								array(
-										'module_basename' => '\gothick\akismet\acp\akismet_module',
-										'modes' => array(
+							'acp',
+							'ACP_AKISMET_TITLE',
+							array(
+								'module_basename' => '\gothick\akismet\acp\akismet_module',
+								'modes' => array(
 												'settings'
-										)
 								)
+							)
 						)
-				)
+					)
 		);
 	}
 }

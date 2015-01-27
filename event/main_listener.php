@@ -154,7 +154,7 @@ class main_listener implements EventSubscriberInterface
 				if (! class_exists('messenger'))
 				{
 					include ($this->root_path . 'includes/functions_messenger.' .
-							 $this->php_ext);
+							$this->php_ext);
 					$this->messenger = new \messenger(false);
 				}
 			}
@@ -235,7 +235,6 @@ class main_listener implements EventSubscriberInterface
 		// However, it looks like if we want that, we'll have to do it ourselves:
 		// https://www.phpbb.com/customise/db/mod/board_watch/support/topic/131696
 
-
 		// We may not have messenger, if, for example, the board has email
 		// disabled.
 		if (isset($this->messenger))
@@ -256,8 +255,8 @@ class main_listener implements EventSubscriberInterface
 								'TOPIC_TITLE' => $post_data['topic_title'],
 								'POSTING_USER_USERNAME' => $this->user->data['username'],
 								'POSTING_USER_URL' => generate_board_url() .
-										 '/memberlist.php?mode=viewprofile&u=' .
-										 $this->user->data['user_id'],
+										'/memberlist.php?mode=viewprofile&u=' .
+										$this->user->data['user_id'],
 										'POST_TEXT' => $post_data['message']
 						));
 				// TODO: Issue #2: Internationalise "Forum spam detected from user".
@@ -266,7 +265,7 @@ class main_listener implements EventSubscriberInterface
 				// https://github.com/gothick/phpbb-ext-akismet/issues/2
 				$this->messenger->subject(
 						$this->user->lang['FORUM_SPAM_DETECTED_FROM_USER'] . ' ' .
-								 $this->user->data['username_clean']);
+								$this->user->data['username_clean']);
 				$this->messenger->headers(
 						'X-AntiAbuse: User IP - ' . $this->user->ip);
 
@@ -291,7 +290,7 @@ class main_listener implements EventSubscriberInterface
 		// Skip the Akismet check for anyone who's a moderator or an administrator. If your
 		// admins and moderators are posting spam, you've got bigger problems...
 		if (! ($this->auth->acl_getf_global('m_') ||
-				 $this->auth->acl_getf_global('a_')))
+				$this->auth->acl_getf_global('a_')))
 		{
 			if ($this->prepare_for_akismet())
 			{
@@ -349,7 +348,7 @@ class main_listener implements EventSubscriberInterface
 
 					// Note our action in the moderation log
 					if ($event['mode'] == 'post' || ($event['mode'] == 'edit' &&
-							 $data['topic_first_post_id'] == $data['post_id']))
+							$data['topic_first_post_id'] == $data['post_id']))
 					{
 						$log_message = 'LOG_TOPIC_DISAPPROVED';
 					}

@@ -29,4 +29,3 @@ $lang = array_merge($lang,
 				'AKISMET_LOG_USING_ANONYMOUS_USER' => "<strong>Using anonymous user for Gothick Akismet</strong><br />» Check the Extension's settings",
 				'AKISMET_LOG_NO_KEY_CONFIGURED' => "<strong>No API key configured for Gothick Akismet</strong><br />» Check the Extension's settings"
 		));
-
