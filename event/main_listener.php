@@ -229,12 +229,10 @@ class main_listener implements EventSubscriberInterface
 	 */
 	protected function send_moderator_notification ($post_data)
 	{
-		// TODO: What we should *really* do for emails is to use something like
-		// a phpBB 3.1 version of a mod like Board Watch. Then someone else would do 
-		// the heavy lifting.
+		// TODO: Issue #3 We should *really* use something like a phpBB 3.1 version 
+		// of a mod like Board Watch. Then someone else would do the heavy lifting.
 		// However, it looks like if we want that, we'll have to do it ourselves:
 		// https://www.phpbb.com/customise/db/mod/board_watch/support/topic/131696
-		
 
 		// We may not have messenger, if, for example, the board has email
 		// disabled.
