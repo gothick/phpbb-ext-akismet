@@ -17,6 +17,9 @@
       "composer/installers": "~1.0",
       "tijsverkoyen/akismet": "dev-master"
    },
+   "require-dev": {
+      "phpbb/epv": "dev-master"
+   },
    "extra": {
       "display-name": "Gothick Akismet Anti-Spam Extension",
       "soft-require" : {
