@@ -16,10 +16,9 @@ if (empty($lang) || ! is_array($lang))
 	$lang = array();
 }
 
-$lang = array_merge($lang, 
+$lang = array_merge($lang,
 		array(
 				'AKISMET_DISAPPROVED' => 'Disapproved by Akismet check.',
 				// Email subject
 				'FORUM_SPAM_DETECTED_FROM_USER' => 'Forum spam detected from user'
-		)
-		);
+		));
