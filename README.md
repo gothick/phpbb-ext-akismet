@@ -1,6 +1,7 @@
 # phpbb-ext-akismet
 
-This is in the very early stages of development! Don't use me yet :D
+27 January 2015: This is in the very early stages of development! 
+Don't use me yet :D
 
 ## Known issues:
 
