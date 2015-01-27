@@ -49,26 +49,27 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \phpbb\user_loader */
 	protected $user_loader;
-	
+
 	/* @var \phpbb\auth\auth */
 	protected $auth;
 
 	/* @var \TijsVerkoyen\Akismet */
 	protected $akismet;
-	
+
 	/* @var \messenger */
 	protected $messenger;
-
+	
 	// Nominated Akismet user's data, so we can, e.g. email them with notifications
 	protected $akismet_user_data;
-	
+
 	protected $akismet_api_key;
+
 	protected $akismet_user_id;
 
 	/**
 	 * Constructor
-	 * 
-	 * Lightweight initialisation of the API key and user ID. 
+	 *
+	 * Lightweight initialisation of the API key and user ID.
 	 * Heavy lifting is done only if the user actually tries
 	 * to post a message.
 	 *
@@ -79,13 +80,13 @@ class main_listener implements EventSubscriberInterface
 	 * @param \phpbb\request\request $request        	
 	 * @param \phpbb\config\config $request        	
 	 * @param \phpbb\log\log $log        	
-	 * @param \phpbb\user_loader $user_loader     
-	 * @param \phpbb\auth\auth $auth   	
+	 * @param \phpbb\user_loader $user_loader        	
+	 * @param \phpbb\auth\auth $auth        	
 	 */
 	public function __construct (\phpbb\controller\helper $helper, 
 			\phpbb\template\template $template, \phpbb\user $user, 
 			\phpbb\request\request $request, \phpbb\config\config $config, 
-			\phpbb\log\log $log, \phpbb\user_loader $user_loader,
+			\phpbb\log\log $log, \phpbb\user_loader $user_loader, 
 			\phpbb\auth\auth $auth)
 	{
 		$this->helper = $helper;
@@ -99,10 +100,12 @@ class main_listener implements EventSubscriberInterface
 		// To allow super-globals when we call our third-party Akismet library.
 		$this->request = $request;
 		
-		if (!empty($config['gothick_akismet_api_key'])) {
-			$this->akismet_api_key = $config['gothick_akismet_api_key']; 
+		if (! empty($config['gothick_akismet_api_key']))
+		{
+			$this->akismet_api_key = $config['gothick_akismet_api_key'];
 		}
-		if (!empty($config['gothick_akismet_user_id'])) {
+		if (! empty($config['gothick_akismet_user_id']))
+		{
 			$this->akismet_user_id = $config['gothick_akismet_user_id'];
 		}
 	}
@@ -110,39 +113,41 @@ class main_listener implements EventSubscriberInterface
 	/**
 	 * Prepares our Akismet library and other items (messenger, etc.)
 	 *
-	 * We only need these objects if someone's actually going to 
+	 * We only need these objects if someone's actually going to
 	 * post to the board, so we set them up on demand rather than
 	 * in the constructor. (Also, it means that if there's no API
 	 * key configured, we only log an error on every attempted
 	 * post, not on every page view!)
-	 * 
+	 *
 	 * @return bool true if Akismet is now ready to use.
 	 */
-	protected function prepare_for_akismet() {
-
+	protected function prepare_for_akismet ()
+	{
 		if (isset($this->akismet))
 		{
 			// Already done.
 			return true;
 		}
 		
-		if (empty($this->akismet_api_key)) 
+		if (empty($this->akismet_api_key))
 		{
-			$this->log->add('critical', ANONYMOUS, $this->user->data['session_ip'],
+			$this->log->add('critical', ANONYMOUS, 
+					$this->user->data['session_ip'], 
 					'AKISMET_LOG_NO_KEY_CONFIGURED');
 			return false;
 		}
-
+		
 		// Load our third-party library.
 		// TODO: This should probably be dependency-injected, but it needs
 		// the (runtime-configured) API key and URL as its construction
 		// parameters.
-		$this->akismet = new \TijsVerkoyen\Akismet\Akismet($this->akismet_api_key,
-				generate_board_url());
-			
+		$this->akismet = new \TijsVerkoyen\Akismet\Akismet(
+				$this->akismet_api_key, generate_board_url());
+		
 		// We log, send mail, etc. as our Akismet user.
-		$this->akismet_user_data = $this->get_akismet_user_data($this->akismet_user_id);
-			
+		$this->akismet_user_data = $this->get_akismet_user_data(
+				$this->akismet_user_id);
+		
 		// For email sending
 		if ($this->config['email_enable'])
 		{
@@ -150,21 +155,24 @@ class main_listener implements EventSubscriberInterface
 			{
 				global $phpbb_root_path, $phpEx;
 				include ($phpbb_root_path . 'includes/functions_messenger.' .
-						$phpEx);
+						 $phpEx);
 				$this->messenger = new \messenger(false);
 			}
 		}
 		return true;
 	}
-	
+
 	/**
-	 * Loads the standard user data array for a specified user. We use this to grab
+	 * Loads the standard user data array for a specified user.
+	 * We use this to grab
 	 * information about our nominated Akismet user; mail will be sent to their
 	 * email address, etc.
-	 * 
-	 * @param string $user_id User id to fetch data for
-	 * @return array Standard $user->data[] of the user, or of ANONYMOUS if not found.
-	 * 
+	 *
+	 * @param string $user_id
+	 *        	User id to fetch data for
+	 * @return array Standard $user->data[] of the user, or of ANONYMOUS if not
+	 *         found.
+	 *        
 	 */
 	protected function get_akismet_user_data ($user_id)
 	{
@@ -173,7 +181,7 @@ class main_listener implements EventSubscriberInterface
 		
 		// But if there's a user configured in the Extension settings, we try
 		// to use it instead.
-		if (!empty($user_id))
+		if (! empty($user_id))
 		{
 			$better_akismet_user_id = filter_var($user_id, FILTER_VALIDATE_INT);
 			if ($better_akismet_user_id !== false)
@@ -191,7 +199,8 @@ class main_listener implements EventSubscriberInterface
 		// If, after all that, we're still using the anonymous user, log it as an issue.
 		if ($akismet_user_id == ANONYMOUS)
 		{
-			$this->log->add('critical', ANONYMOUS, $this->user->data['session_ip'], 
+			$this->log->add('critical', ANONYMOUS, 
+					$this->user->data['session_ip'], 
 					'AKISMET_LOG_USING_ANONYMOUS_USER');
 		}
 		return $akismet_user_data;
@@ -199,8 +208,8 @@ class main_listener implements EventSubscriberInterface
 
 	/**
 	 * Loads up our (minimal) language entries.
-	 * 
-	 * @param unknown $event
+	 *
+	 * @param unknown $event        	
 	 */
 	public function load_language_on_setup ($event)
 	{
@@ -212,7 +221,13 @@ class main_listener implements EventSubscriberInterface
 		$event['lang_set_ext'] = $lang_set_ext;
 	}
 
-	protected function send_mail ($post_data)
+	/**
+	 * If a post is detected as spam, we send a notification to our nominated
+	 * Akismet user.
+	 * 
+	 * @param array $post_data        	
+	 */
+	protected function send_moderator_notification ($post_data)
 	{
 		// TODO: What we should *really* do for emails is to use something like
 		// a phpBB 3.1 version of a mod like Board Watch. Then someone else would do 
@@ -225,9 +240,8 @@ class main_listener implements EventSubscriberInterface
 		// disabled.
 		if (isset($this->messenger))
 		{
-			// If we have a nominated Akismet user, we send them an email to let
-			// them
-			// know the message has been marked as spam:
+			// There's perhaps a chance we don't have a nominated
+			// Akismet user set up. Quietly fail if we don't.
 			if (isset($this->akismet_user_data))
 			{
 				$this->messenger->template(
@@ -251,7 +265,7 @@ class main_listener implements EventSubscriberInterface
 				// user, *not* $this->user.
 				// https://github.com/gothick/phpbb-ext-akismet/issues/2
 				$this->messenger->subject(
-						$this->user->lang['FORUM_SPAM_DETECTED_FROM_USER'] . ' ' . 
+						$this->user->lang['FORUM_SPAM_DETECTED_FROM_USER'] . ' ' .
 								 $this->user->data['username_clean']);
 				$this->messenger->headers(
 						'X-AntiAbuse: User IP - ' . $this->user->ip);
@@ -263,14 +277,25 @@ class main_listener implements EventSubscriberInterface
 		}
 	}
 
+	/**
+	 * The main event.
+	 * When a post is submitted, we do several checks: is the
+	 * user an admin or moderator (instant approval), does it fail the Akismet
+	 * isSpam check, etc. On a failure we mark the post as not approved and
+	 * log and notify.
+	 *
+	 * @param unknown $event        	
+	 */
 	public function check_submitted_post ($event)
 	{
-		if ($this->prepare_for_akismet()) 
+		if ($this->prepare_for_akismet())
 		{
 			// Skip the Akismet check for anyone who's a moderator or an administrator. If your
 			// admins and moderators are posting spam, you've got bigger problems...
-			if (!($this->auth->acl_getf_global('m_') || $this->auth->acl_getf_global('a_'))) {
-			
+			if (! ($this->auth->acl_getf_global('m_') ||
+					 $this->auth->acl_getf_global('a_')))
+			{
+				
 				$data = $event['data'];
 				
 				// Akismet fields
@@ -284,9 +309,8 @@ class main_listener implements EventSubscriberInterface
 				
 				// URL of topic
 				global $phpEx;
-				$permalink = generate_board_url() . '/' .
-						 append_sid("viewtopic.$phpEx", "t={$data['topic_id']}", 
-								true, '');
+				$permalink = generate_board_url() . '/' . append_sid(
+						"viewtopic.$phpEx", "t={$data['topic_id']}", true, '');
 				
 				// TODO: Issue #1: Should we find a way of avoiding enable_super_globals()?
 				// https://github.com/gothick/phpbb-ext-akismet/issues/1
@@ -300,13 +324,13 @@ class main_listener implements EventSubscriberInterface
 					// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
 					$is_spam = $this->akismet->isSpam($content, $author, $email, 
 							$url, $permalink, 'forum-post');
-				} 
-				catch (\Exception $e)
+				} catch (\Exception $e)
 				{
 					// If Akismet's down, or there's some other problem like that,
 					// we'll give the post the benefit of the doubt, but log a 
 					// warning.
-					$this->log->add('critical', $this->akismet_user_data['user_id'], 
+					$this->log->add('critical', 
+							$this->akismet_user_data['user_id'], 
 							$this->user->data['session_ip'], 
 							'AKISMET_LOG_CALL_FAILED', false, 
 							array(
@@ -337,7 +361,7 @@ class main_listener implements EventSubscriberInterface
 					$akismet_username = $this->akismet_user_data['username'];
 					
 					$this->log->add('mod', $akismet_user_id, 
-							$this->user->data['session_ip'], $log_message, false,
+							$this->user->data['session_ip'], $log_message, false, 
 							array(
 									$data['topic_title'],
 									// TODO: Issue #2: This log message ("AKISMET_DISAPPROVED") 
@@ -353,7 +377,7 @@ class main_listener implements EventSubscriberInterface
 									$this->user->data['username']
 							));
 					
-					$this->send_mail($data);
+					$this->send_moderator_notification($data);
 				}
 			}
 		}
