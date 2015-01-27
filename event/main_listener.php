@@ -55,16 +55,22 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \TijsVerkoyen\Akismet */
 	protected $akismet;
-	// Third-party client library
 	
-
 	/* @var \messenger */
 	protected $messenger;
 
+	// Nominated Akismet user's data, so we can, e.g. email them with notifications
 	protected $akismet_user_data;
+	
+	protected $akismet_api_key;
+	protected $akismet_user_id;
 
 	/**
 	 * Constructor
+	 * 
+	 * Lightweight initialisation of the API key and user ID. 
+	 * Heavy lifting is done only if the user actually tries
+	 * to post a message.
 	 *
 	 * @param \phpbb\controller\helper $helper
 	 *        	object
@@ -93,38 +99,73 @@ class main_listener implements EventSubscriberInterface
 		// To allow super-globals when we call our third-party Akismet library.
 		$this->request = $request;
 		
-		if (!empty($config['gothick_akismet_api_key'])) 
-		{
-			// Load our third-party library.
-			// TODO: This should probably be dependency-injected, but it needs
-			// the (runtime-configured) API key and URL as its construction
-			// parameters.
-			$this->akismet = new \TijsVerkoyen\Akismet\Akismet($config['gothick_akismet_api_key'], 
-					generate_board_url());
-			
-			// We log, send mail, etc. as our Akismet user.
-			$this->akismet_user_data = $this->get_akismet_user_data(
-					$config['gothick_akismet_user_id']);
-			
-			// For email sending
-			if ($this->config['email_enable'])
-			{
-				if (! class_exists('messenger'))
-				{
-					global $phpbb_root_path, $phpEx;
-					include ($phpbb_root_path . 'includes/functions_messenger.' .
-							 $phpEx);
-					$this->messenger = new \messenger(false);
-				}
-			}
+		if (!empty($config['gothick_akismet_api_key'])) {
+			$this->akismet_api_key = $config['gothick_akismet_api_key']; 
 		}
-		else 
-		{
-			$this->log->add('critical', ANONYMOUS, $this->user->data['session_ip'],
-					'AKISMET_LOG_NO_KEY_CONFIGURED');
+		if (!empty($config['gothick_akismet_user_id'])) {
+			$this->akismet_user_id = $config['gothick_akismet_user_id'];
 		}
 	}
 
+	/**
+	 * Prepares our Akismet library and other items (messenger, etc.)
+	 *
+	 * We only need these objects if someone's actually going to 
+	 * post to the board, so we set them up on demand rather than
+	 * in the constructor. (Also, it means that if there's no API
+	 * key configured, we only log an error on every attempted
+	 * post, not on every page view!)
+	 * 
+	 * @return bool true if Akismet is now ready to use.
+	 */
+	protected function prepare_for_akismet() {
+
+		if (isset($this->akismet))
+		{
+			// Already done.
+			return true;
+		}
+		
+		if (empty($this->akismet_api_key)) 
+		{
+			$this->log->add('critical', ANONYMOUS, $this->user->data['session_ip'],
+					'AKISMET_LOG_NO_KEY_CONFIGURED');
+			return false;
+		}
+
+		// Load our third-party library.
+		// TODO: This should probably be dependency-injected, but it needs
+		// the (runtime-configured) API key and URL as its construction
+		// parameters.
+		$this->akismet = new \TijsVerkoyen\Akismet\Akismet($this->akismet_api_key,
+				generate_board_url());
+			
+		// We log, send mail, etc. as our Akismet user.
+		$this->akismet_user_data = $this->get_akismet_user_data($this->akismet_user_id);
+			
+		// For email sending
+		if ($this->config['email_enable'])
+		{
+			if (! class_exists('messenger'))
+			{
+				global $phpbb_root_path, $phpEx;
+				include ($phpbb_root_path . 'includes/functions_messenger.' .
+						$phpEx);
+				$this->messenger = new \messenger(false);
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Loads the standard user data array for a specified user. We use this to grab
+	 * information about our nominated Akismet user; mail will be sent to their
+	 * email address, etc.
+	 * 
+	 * @param string $user_id User id to fetch data for
+	 * @return array Standard $user->data[] of the user, or of ANONYMOUS if not found.
+	 * 
+	 */
 	protected function get_akismet_user_data ($user_id)
 	{
 		// We default to the anonymous user as a fallback
@@ -132,7 +173,7 @@ class main_listener implements EventSubscriberInterface
 		
 		// But if there's a user configured in the Extension settings, we try
 		// to use it instead.
-		if (isset($user_id))
+		if (!empty($user_id))
 		{
 			$better_akismet_user_id = filter_var($user_id, FILTER_VALIDATE_INT);
 			if ($better_akismet_user_id !== false)
@@ -156,6 +197,11 @@ class main_listener implements EventSubscriberInterface
 		return $akismet_user_data;
 	}
 
+	/**
+	 * Loads up our (minimal) language entries.
+	 * 
+	 * @param unknown $event
+	 */
 	public function load_language_on_setup ($event)
 	{
 		$lang_set_ext = $event['lang_set_ext'];
@@ -231,7 +277,7 @@ class main_listener implements EventSubscriberInterface
 
 	public function check_submitted_post ($event)
 	{
-		if (isset($this->akismet))
+		if ($this->prepare_for_akismet()) 
 		{
 			// Skip the Akismet check for anyone who's a moderator or an administrator. If your
 			// admins and moderators are posting spam, you've got bigger problems...
