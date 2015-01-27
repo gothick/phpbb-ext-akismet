@@ -14,6 +14,7 @@ namespace gothick\akismet\event;
  *
  */
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Event listener
@@ -52,12 +53,21 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \phpbb\auth\auth */
 	protected $auth;
+	
+	/* @var \Symfony\Component\DependencyInjection\ContainerInterface */
+	protected $phpbb_container;
 
 	/* @var \TijsVerkoyen\Akismet */
 	protected $akismet;
 
 	/* @var \messenger */
 	protected $messenger;
+	
+	/* @var string */
+	protected $php_ext;
+	
+	/* @var string */
+	protected $root_path;
 	
 	// Nominated Akismet user's data, so we can, e.g. email them with notifications
 	protected $akismet_user_data;
@@ -81,13 +91,17 @@ class main_listener implements EventSubscriberInterface
 	 * @param \phpbb\config\config $request        	
 	 * @param \phpbb\log\log $log        	
 	 * @param \phpbb\user_loader $user_loader        	
-	 * @param \phpbb\auth\auth $auth        	
+	 * @param \phpbb\auth\auth $auth        
+	 * @param string $php_ext	
+	 * @param string $root_path
 	 */
 	public function __construct (\phpbb\controller\helper $helper, 
 			\phpbb\template\template $template, \phpbb\user $user, 
 			\phpbb\request\request $request, \phpbb\config\config $config, 
 			\phpbb\log\log $log, \phpbb\user_loader $user_loader, 
-			\phpbb\auth\auth $auth)
+			\phpbb\auth\auth $auth,
+			\Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container,
+			$php_ext, $root_path)
 	{
 		$this->helper = $helper;
 		$this->template = $template;
@@ -96,7 +110,9 @@ class main_listener implements EventSubscriberInterface
 		$this->log = $log;
 		$this->user_loader = $user_loader;
 		$this->auth = $auth;
-		
+		$this->phpbb_container = $phpbb_container;
+		$this->php_ext = $php_ext;
+		$this->root_path = $root_path;
 		// To allow super-globals when we call our third-party Akismet library.
 		$this->request = $request;
 		
@@ -107,7 +123,7 @@ class main_listener implements EventSubscriberInterface
 		if (! empty($config['gothick_akismet_user_id']))
 		{
 			$this->akismet_user_id = $config['gothick_akismet_user_id'];
-		}
+		}		
 	}
 
 	/**
@@ -129,37 +145,40 @@ class main_listener implements EventSubscriberInterface
 			return true;
 		}
 		
-		if (empty($this->akismet_api_key))
-		{
-			$this->log->add('critical', ANONYMOUS, 
-					$this->user->data['session_ip'], 
-					'AKISMET_LOG_NO_KEY_CONFIGURED');
-			return false;
-		}
+		// Load our third-party library. We use a factory method that
+		// reads the configured API key from this extension's settings, 
+		// as the third-party library takes the API key as a constructor
+		// parameter. (The factory method means we can also create 
+		// a mock Akismet client library for testing.)
+		$this->akismet = $this->phpbb_container->get('gothick.akismet.tijsverkoyen.akismet', 
+				ContainerInterface::NULL_ON_INVALID_REFERENCE);
 		
-		// Load our third-party library.
-		// TODO: This should probably be dependency-injected, but it needs
-		// the (runtime-configured) API key and URL as its construction
-		// parameters.
-		$this->akismet = new \TijsVerkoyen\Akismet\Akismet(
-				$this->akismet_api_key, generate_board_url());
-		
-		// We log, send mail, etc. as our Akismet user.
-		$this->akismet_user_data = $this->get_akismet_user_data(
-				$this->akismet_user_id);
-		
-		// For email sending
-		if ($this->config['email_enable'])
-		{
-			if (! class_exists('messenger'))
+		// Our factory may not have returned an Akismet object if there
+		// was no API key set in the configuration, so we still need to
+		// check if one was passed back to us. It's okay if one wasn't;
+		// the factory method will log an error, and we'll silently not
+		// check for spam. We don't want every post to the board to 
+		// be marked as spam in between installing the extension and the
+		// administrator configuring the API key!
+		if (isset($this->akismet)) {
+				
+			// We log, send mail, etc. as our Akismet user.
+			$this->akismet_user_data = $this->get_akismet_user_data(
+					$this->akismet_user_id);
+			
+			// For email sending
+			if ($this->config['email_enable'])
 			{
-				global $phpbb_root_path, $phpEx;
-				include ($phpbb_root_path . 'includes/functions_messenger.' .
-						 $phpEx);
-				$this->messenger = new \messenger(false);
+				if (! class_exists('messenger'))
+				{
+					include ($this->root_path . 'includes/functions_messenger.' .
+							 $this->php_ext);
+					$this->messenger = new \messenger(false);
+				}
 			}
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	/**
@@ -306,10 +325,8 @@ class main_listener implements EventSubscriberInterface
 				$url = isset($this->user->profile_fields['pf_phpbb_website']) ? $this->user->profile_fields['pf_phpbb_website'] : '';
 				
 				// URL of topic
-				//TODO: Replace this global with dependency injection (%core.php_ext%)
-				global $phpEx;
 				$permalink = generate_board_url() . '/' . append_sid(
-						"viewtopic.$phpEx", "t={$data['topic_id']}", true, '');
+						"viewtopic.{$this->php_ext}", "t={$data['topic_id']}", true, '');
 				
 				// TODO: Issue #1: Should we find a way of avoiding enable_super_globals()?
 				// https://github.com/gothick/phpbb-ext-akismet/issues/1

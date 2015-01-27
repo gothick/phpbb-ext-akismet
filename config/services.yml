@@ -17,5 +17,19 @@ services:
       - @log
       - @user_loader
       - @auth
+      - @service_container
+      - %core.php_ext%
+      - %core.root_path%
     tags:
       - { name: event.listener }
+  gothick.akismet.tijsverkoyen.akismet.factory:
+    class: gothick\akismet\utility\akismet_factory
+    arguments:
+      - @config
+      - @log
+      - @user
+  gothick.akismet.tijsverkoyen.akismet:
+    class: TijsVerkoyen\Akismet\Akismet
+    factory_service: gothick.akismet.tijsverkoyen.akismet.factory
+    factory_method: createAkismet
+
