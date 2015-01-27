@@ -306,18 +306,15 @@ class main_listener implements EventSubscriberInterface
 							$this->user->data['session_ip'], $log_message, false,
 							array(
 									$data['topic_title'],
-									// TODO: We should log in the language of the
-									// nominated Akismet user. This has
-									// been a nightmare to figure out, though, and
-									// got very messy, so we're just
-									// going to log stuff in the language of the
-									// posting user for now. This
-									// should be okay for most boards, as it's only
-									// in multilingual boards
-									// where the user's language would be different
-									// from a board admin's
-									// language. Revisit when (if?) phpBB makes this
-									// easier.
+									// TODO: Issue #2: This log message ("AKISMET_DISAPPROVED") 
+									// should be in the language of the nominated Akismet user. 
+									// This has been a nightmare to figure out, though, and 
+									// got quite messy, so we're just going to log stuff in the
+									// language of the posting user for now. This should be okay
+									//  for most boards, as it's only in multilingual boards 
+									// where the user's language would be different from a 
+									// board admin's language. Revisit when (if?) phpBB makes 
+									// this easier.
 									$this->user->lang('AKISMET_DISAPPROVED'),
 									$this->user->data['username']
 							));
