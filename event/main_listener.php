@@ -53,7 +53,7 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \phpbb\auth\auth */
 	protected $auth;
-	
+
 	/* @var \Symfony\Component\DependencyInjection\ContainerInterface */
 	protected $phpbb_container;
 
@@ -62,11 +62,9 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \messenger */
 	protected $messenger;
-	
-	/* @var string */
+
 	protected $php_ext;
-	
-	/* @var string */
+
 	protected $root_path;
 	
 	// Nominated Akismet user's data, so we can, e.g. email them with notifications
@@ -91,16 +89,16 @@ class main_listener implements EventSubscriberInterface
 	 * @param \phpbb\config\config $request        	
 	 * @param \phpbb\log\log $log        	
 	 * @param \phpbb\user_loader $user_loader        	
-	 * @param \phpbb\auth\auth $auth        
-	 * @param string $php_ext	
-	 * @param string $root_path
+	 * @param \phpbb\auth\auth $auth        	
+	 * @param string $php_ext        	
+	 * @param string $root_path        	
 	 */
 	public function __construct (\phpbb\controller\helper $helper, 
 			\phpbb\template\template $template, \phpbb\user $user, 
 			\phpbb\request\request $request, \phpbb\config\config $config, 
 			\phpbb\log\log $log, \phpbb\user_loader $user_loader, 
-			\phpbb\auth\auth $auth,
-			\Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container,
+			\phpbb\auth\auth $auth, 
+			\Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container, 
 			$php_ext, $root_path)
 	{
 		$this->helper = $helper;
@@ -123,7 +121,7 @@ class main_listener implements EventSubscriberInterface
 		if (! empty($config['gothick_akismet_user_id']))
 		{
 			$this->akismet_user_id = $config['gothick_akismet_user_id'];
-		}		
+		}
 	}
 
 	/**
@@ -150,7 +148,8 @@ class main_listener implements EventSubscriberInterface
 		// as the third-party library takes the API key as a constructor
 		// parameter. (The factory method means we can also create 
 		// a mock Akismet client library for testing.)
-		$this->akismet = $this->phpbb_container->get('gothick.akismet.tijsverkoyen.akismet', 
+		$this->akismet = $this->phpbb_container->get(
+				'gothick.akismet.tijsverkoyen.akismet', 
 				ContainerInterface::NULL_ON_INVALID_REFERENCE);
 		
 		// Our factory may not have returned an Akismet object if there
@@ -160,8 +159,9 @@ class main_listener implements EventSubscriberInterface
 		// check for spam. We don't want every post to the board to 
 		// be marked as spam in between installing the extension and the
 		// administrator configuring the API key!
-		if (isset($this->akismet)) {
-				
+		if (isset($this->akismet))
+		{
+			
 			// We log, send mail, etc. as our Akismet user.
 			$this->akismet_user_data = $this->get_akismet_user_data(
 					$this->akismet_user_id);
@@ -243,7 +243,7 @@ class main_listener implements EventSubscriberInterface
 	/**
 	 * If a post is detected as spam, we send a notification to our nominated
 	 * Akismet user.
-	 * 
+	 *
 	 * @param array $post_data        	
 	 */
 	protected function send_moderator_notification ($post_data)
@@ -252,6 +252,7 @@ class main_listener implements EventSubscriberInterface
 		// of a mod like Board Watch. Then someone else would do the heavy lifting.
 		// However, it looks like if we want that, we'll have to do it ourselves:
 		// https://www.phpbb.com/customise/db/mod/board_watch/support/topic/131696
+		
 
 		// We may not have messenger, if, for example, the board has email
 		// disabled.
@@ -326,7 +327,8 @@ class main_listener implements EventSubscriberInterface
 				
 				// URL of topic
 				$permalink = generate_board_url() . '/' . append_sid(
-						"viewtopic.{$this->php_ext}", "t={$data['topic_id']}", true, '');
+						"viewtopic.{$this->php_ext}", "t={$data['topic_id']}", 
+						true, '');
 				
 				// TODO: Issue #1: Should we find a way of avoiding enable_super_globals()?
 				// https://github.com/gothick/phpbb-ext-akismet/issues/1
@@ -368,7 +370,8 @@ class main_listener implements EventSubscriberInterface
 							 $data['topic_first_post_id'] == $data['post_id']))
 					{
 						$log_message = 'LOG_TOPIC_DISAPPROVED';
-					} else
+					}
+					else
 					{
 						$log_message = 'LOG_POST_DISAPPROVED';
 					}
