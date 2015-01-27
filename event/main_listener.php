@@ -306,6 +306,7 @@ class main_listener implements EventSubscriberInterface
 				$url = isset($this->user->profile_fields['pf_phpbb_website']) ? $this->user->profile_fields['pf_phpbb_website'] : '';
 				
 				// URL of topic
+				//TODO: Replace this global with dependency injection (%core.php_ext%)
 				global $phpEx;
 				$permalink = generate_board_url() . '/' . append_sid(
 						"viewtopic.$phpEx", "t={$data['topic_id']}", true, '');
