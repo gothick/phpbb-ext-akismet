@@ -70,8 +70,6 @@ class main_listener implements EventSubscriberInterface
 	// Nominated Akismet user's data, so we can, e.g. email them with notifications
 	protected $akismet_user_data;
 
-	protected $akismet_api_key;
-
 	protected $akismet_user_id;
 
 	/**
@@ -114,10 +112,6 @@ class main_listener implements EventSubscriberInterface
 		// To allow super-globals when we call our third-party Akismet library.
 		$this->request = $request;
 		
-		if (! empty($config['gothick_akismet_api_key']))
-		{
-			$this->akismet_api_key = $config['gothick_akismet_api_key'];
-		}
 		if (! empty($config['gothick_akismet_user_id']))
 		{
 			$this->akismet_user_id = $config['gothick_akismet_user_id'];
