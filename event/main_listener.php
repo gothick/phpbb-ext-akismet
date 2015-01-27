@@ -62,7 +62,7 @@ class main_listener implements EventSubscriberInterface
 
 	/* @var \messenger */
 	protected $messenger;
-
+ 
 	protected $php_ext;
 
 	protected $root_path;
@@ -306,14 +306,14 @@ class main_listener implements EventSubscriberInterface
 	 */
 	public function check_submitted_post ($event)
 	{
-		if ($this->prepare_for_akismet())
+		// Skip the Akismet check for anyone who's a moderator or an administrator. If your
+		// admins and moderators are posting spam, you've got bigger problems...
+		if (! ($this->auth->acl_getf_global('m_') ||
+				 $this->auth->acl_getf_global('a_')))
 		{
-			// Skip the Akismet check for anyone who's a moderator or an administrator. If your
-			// admins and moderators are posting spam, you've got bigger problems...
-			if (! ($this->auth->acl_getf_global('m_') ||
-					 $this->auth->acl_getf_global('a_')))
+			if ($this->prepare_for_akismet())
 			{
-				
+			
 				$data = $event['data'];
 				
 				// Akismet fields
