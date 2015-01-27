@@ -1,11 +1,4 @@
 services:
-  gothick.akismet.controller:
-    class: gothick\akismet\controller\main
-    arguments:
-      - @config
-      - @controller.helper
-      - @template
-      - @user
   gothick.akismet.listener:
     class: gothick\akismet\event\main_listener
     arguments:

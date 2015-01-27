@@ -1,3 +1,0 @@
-gothick_akismet_controller:
-  path: /akismet/{name}
-  defaults: { _controller: gothick.akismet.controller:handle }
