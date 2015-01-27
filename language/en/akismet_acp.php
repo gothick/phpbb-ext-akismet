@@ -17,7 +17,6 @@ if (empty($lang) || !is_array($lang))
     $lang = array();
 }
 
-// TODO: Split ACP strings to separate file
 $lang = array_merge($lang, array(
 		'ACP_AKISMET_SETTING_CHANGED'	=> 'Akismet settings updated.', // For log
 		'ACP_AKISMET_SETTING_SAVED' => 'Settings have been saved successfully!',
