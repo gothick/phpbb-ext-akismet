@@ -311,9 +311,10 @@ class main_listener implements EventSubscriberInterface
 						"viewtopic.{$this->php_ext}", "t={$data['topic_id']}",
 						true, '');
 
-				// TODO: Issue #1: Should we find a way of avoiding enable_super_globals()?
-				// https://github.com/gothick/phpbb-ext-akismet/issues/1
-				// https://www.phpbb.com/community/viewtopic.php?f=461&t=2270496
+				// The phpBB team have indicated that this use of enable_super_globals()
+				// doesn't seem like a terrible thing, given it's a workaround for a
+				// third-party library I'm bringing in as-is with Composer.
+				// https://www.phpbb.com/community/viewtopic.php?f=461&t=2290231#p13918466
 				$this->request->enable_super_globals();
 
 				$is_spam = false;
