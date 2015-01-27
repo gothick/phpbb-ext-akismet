@@ -212,18 +212,6 @@ class main_listener implements EventSubscriberInterface
 		$event['lang_set_ext'] = $lang_set_ext;
 	}
 
-	public function add_page_header_link ($event)
-	{
-		$this->template->assign_vars(
-				array(
-						'U_DEMO_PAGE' => $this->helper->route(
-								'gothick_akismet_controller', 
-								array(
-										'name' => 'world'
-								))
-				));
-	}
-
 	protected function send_mail ($post_data)
 	{
 		// TODO: What we should *really* do for emails is to use something like
