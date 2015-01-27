@@ -8,7 +8,7 @@
  */
 namespace gothick\akismet\acp;
 
-class main_module
+class akismet_module
 {
 
 	var $u_action;
@@ -18,7 +18,9 @@ class main_module
 		global $db, $user, $auth, $template, $cache, $request, $phpbb_log;
 		global $config, $phpbb_root_path, $phpbb_admin_path, $phpEx;
 		
-		$user->add_lang('acp/common');
+		// Add our ACP language file.
+		$user->add_lang_ext('gothick/akismet', 'akismet_acp');
+		
 		$this->tpl_name = 'akismet_body';
 		$this->page_title = $user->lang('ACP_AKISMET_TITLE');
 		add_form_key('gothick/akismet');
@@ -55,7 +57,7 @@ class main_module
 			}
 			
 			$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 
-					'ACP_AKISMET_SETTING_CHANGED');
+					'AKISMET_LOG_SETTING_CHANGED');
 			
 			trigger_error(
 					$user->lang('ACP_AKISMET_SETTING_SAVED') .

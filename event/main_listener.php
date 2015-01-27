@@ -121,7 +121,7 @@ class main_listener implements EventSubscriberInterface
 		else 
 		{
 			$this->log->add('critical', ANONYMOUS, $this->user->data['session_ip'],
-					'AKISMET_NO_KEY_CONFIGURED');
+					'AKISMET_LOG_NO_KEY_CONFIGURED');
 		}
 	}
 
@@ -161,7 +161,7 @@ class main_listener implements EventSubscriberInterface
 		$lang_set_ext = $event['lang_set_ext'];
 		$lang_set_ext[] = array(
 				'ext_name' => 'gothick/akismet',
-				'lang_set' => 'common'
+				'lang_set' => 'akismet'
 		);
 		$event['lang_set_ext'] = $lang_set_ext;
 	}
@@ -213,12 +213,11 @@ class main_listener implements EventSubscriberInterface
 										'POST_TEXT' => $post_data['message']
 						));
 				// TODO: Issue #2: Internationalise "Forum spam detected from user". 
-				// Bear in mind that this should be internationalised to the 
-				// *recipient* of the email, i.e. the Akismet user, *not* 
-				// $this->user.
+				// to the language of the *recipient* of the email, i.e. the Akismet 
+				// user, *not* $this->user.
 				// https://github.com/gothick/phpbb-ext-akismet/issues/2
 				$this->messenger->subject(
-						'Forum spam detected from user ' .
+						$this->user->lang['FORUM_SPAM_DETECTED_FROM_USER'] . ' ' . 
 								 $this->user->data['username_clean']);
 				$this->messenger->headers(
 						'X-AntiAbuse: User IP - ' . $this->user->ip);

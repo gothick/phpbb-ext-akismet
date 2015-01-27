@@ -36,7 +36,7 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 				'acp',
 				'ACP_AKISMET_TITLE',
 				array(
-					'module_basename'	=> '\gothick\akismet\acp\main_module',
+					'module_basename'	=> '\gothick\akismet\acp\akismet_module',
 					'modes'				=> array('settings'),
 				),
 			)),

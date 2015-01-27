@@ -9,12 +9,12 @@
 
 namespace gothick\akismet\acp;
 
-class main_info
+class akismet_info
 {
 	function module()
 	{
 		return array(
-			'filename'	=> '\gothick\akismet\acp\main_module',
+			'filename'	=> '\gothick\akismet\acp\akismet_module',
 			'title'		=> 'ACP_AKISMET_TITLE',
 			'version'	=> '1.0.1',
 			'modes'		=> array(
