@@ -17,7 +17,7 @@ class akismet_factory
 	/* @var \phpbb\config\config */
 	protected $config;
 
-	/* @var \phpbb\log\log */
+	/* @var \phpbb\log\log_interface */
 	protected $log;
 
 	/* @var \phpbb\user */
@@ -33,11 +33,11 @@ class akismet_factory
 	 * to post a message.
 	 *
 	 * @param \phpbb\config\config $request
-	 * @param \phpbb\log\log $log
+	 * @param \phpbb\log\log_interface $log
 	 * @param \phpbb\user $user
 	 */
 	public function __construct (\phpbb\config\config $config,
-			\phpbb\log\log $log, \phpbb\user $user)
+			\phpbb\log\log_interface $log, \phpbb\user $user)
 	{
 		$this->config = $config;
 		$this->log = $log;

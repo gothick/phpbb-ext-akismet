@@ -39,7 +39,7 @@ class main_listener implements EventSubscriberInterface
 	/* @var \phpbb\config\config */
 	protected $config;
 
-	/* @var \phpbb\log\log */
+	/* @var \phpbb\log\log_interface */
 	protected $log;
 
 	/* @var \phpbb\user_loader */
@@ -76,7 +76,7 @@ class main_listener implements EventSubscriberInterface
 	 * @param \phpbb\user $user
 	 * @param \phpbb\request\request $request
 	 * @param \phpbb\config\config $request
-	 * @param \phpbb\log\log $log
+	 * @param \phpbb\log\log_interface $log
 	 * @param \phpbb\user_loader $user_loader
 	 * @param \phpbb\auth\auth $auth
 	 * @param string $php_ext
@@ -84,7 +84,7 @@ class main_listener implements EventSubscriberInterface
 	 */
 	public function __construct (\phpbb\user $user,
 			\phpbb\request\request $request, \phpbb\config\config $config,
-			\phpbb\log\log $log, \phpbb\user_loader $user_loader,
+			\phpbb\log\log_interface $log, \phpbb\user_loader $user_loader,
 			\phpbb\auth\auth $auth,
 			\Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container,
 			$php_ext, $root_path)
