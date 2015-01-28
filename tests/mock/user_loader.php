@@ -18,7 +18,7 @@ class user_loader extends \phpbb\user_loader
 	public function __construct()
 	{
 	}
-	public function get_user($user_id, $force)
+	public function get_user($user_id, $force = false)
 	{
 		return array(
 				'user_id' => $user_id,
