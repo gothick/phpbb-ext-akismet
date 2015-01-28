@@ -75,7 +75,7 @@ class main_listener implements EventSubscriberInterface
 	 *
 	 * @param \phpbb\user $user
 	 * @param \phpbb\request\request $request
-	 * @param \phpbb\config\config $request
+	 * @param \phpbb\config\config $config
 	 * @param \phpbb\log\log_interface $log
 	 * @param \phpbb\user_loader $user_loader
 	 * @param \phpbb\auth\auth $auth
