@@ -26,6 +26,6 @@ $lang = array_merge($lang,
 				// Log operations
 				'AKISMET_LOG_SETTING_CHANGED' => '<strong>Akismet settings updated.</strong>',
 				'AKISMET_LOG_CALL_FAILED' => '<strong>Call to Akismet API failed</strong><br />» API returned: "%1$s"',
-				'AKISMET_LOG_USING_ANONYMOUS_USER' => "<strong>Using anonymous user for Gothick Akismet</strong><br />» Check the Extension's settings",
-				'AKISMET_LOG_NO_KEY_CONFIGURED' => "<strong>No API key configured for Gothick Akismet</strong><br />» Check the Extension's settings"
+				'AKISMET_LOG_USING_ANONYMOUS_USER' => '<strong>Using anonymous user for Gothick Akismet</strong><br />» Check the Extension’s settings',
+				'AKISMET_LOG_NO_KEY_CONFIGURED' => '<strong>No API key configured for Gothick Akismet</strong><br />» Check the Extension’s settings'
 		));
