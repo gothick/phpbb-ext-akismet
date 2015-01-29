@@ -201,7 +201,7 @@ class main_listener implements EventSubscriberInterface
 		if ($akismet_user_id == ANONYMOUS)
 		{
 			$this->log->add('critical', ANONYMOUS,
-					$this->user->data['session_ip'],
+					$this->user->ip,
 					'AKISMET_LOG_USING_ANONYMOUS_USER');
 		}
 		return $akismet_user_data;
@@ -331,7 +331,7 @@ class main_listener implements EventSubscriberInterface
 					// warning.
 					$this->log->add('critical',
 							$this->akismet_user_data['user_id'],
-							$this->user->data['session_ip'],
+							$this->user->ip,
 							'AKISMET_LOG_CALL_FAILED', false,
 							array(
 									$e->getMessage()
@@ -362,7 +362,7 @@ class main_listener implements EventSubscriberInterface
 					$akismet_username = $this->akismet_user_data['username'];
 
 					$this->log->add('mod', $akismet_user_id,
-							$this->user->data['session_ip'], $log_message, false,
+							$this->user->ip, $log_message, false,
 							array(
 									$data['topic_title'],
 									// TODO: Issue #2: This log message ("AKISMET_DISAPPROVED")
