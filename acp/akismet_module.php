@@ -8,6 +8,12 @@
  */
 namespace gothick\akismet\acp;
 
+/**
+ * ACP page for configuring Gothick Akismet: API key, Akismet, etc.
+ *
+ * @author matt
+ *
+ */
 class akismet_module
 {
 
