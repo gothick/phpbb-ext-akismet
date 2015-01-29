@@ -19,7 +19,9 @@ Temporary Items
 # Composer
 vendor/
 
-# API Key (temporarily hardcoded, but in a separate file
-# so I don't check it in to GitHub accidentally :D 
+# MG API Key (temporarily hardcoded, but in a separate file
+# so I don't check it in to GitHub accidentally :D )
 event/api_key.php
 
+# MG makegood configuration file that the EPV moans about.
+makegood_preload.php
