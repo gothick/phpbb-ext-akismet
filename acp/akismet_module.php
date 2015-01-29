@@ -37,7 +37,7 @@ class akismet_module
 					$request->variable('gothick_akismet_api_key', ''));
 
 			$username = utf8_normalize_nfc(
-					request_var('gothick_akismet_username', '', true));
+					$request->variable('gothick_akismet_username', '', true));
 			$sql = 'SELECT user_id
 				FROM ' . USERS_TABLE . "
 				WHERE username_clean = '" .
