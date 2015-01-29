@@ -24,4 +24,4 @@ vendor/
 event/api_key.php
 
 # MG makegood configuration file that the EPV moans about.
-makegood_preload.php
+#makegood_preload.php
