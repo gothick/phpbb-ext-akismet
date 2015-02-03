@@ -2,7 +2,7 @@
 /**
  *
  * @package phpBB Extension - Gothick Akismet
- * @copyright (c) 2013 phpBB Group
+ * @copyright (c) 2015 Matt Gibson Creative Ltd.
  * @license http://opensource.org/licenses/gpl-2.0.php GNU General Public License v2
  *
  */
@@ -28,5 +28,4 @@ $lang = array_merge($lang,
 				'ACP_AKISMET_SETTING_SAVED' => 'Settings have been saved successfully!',
 
 				'ACP_AKISMET_API_KEY' => 'Akismet API Key',
-				'ACP_AKISMET_ENTER_USERNAME' => 'Admin/moderator username for Akismet actions'
 		));

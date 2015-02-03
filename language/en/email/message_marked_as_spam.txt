@@ -1,4 +1,4 @@
-A post at "{SITENAME}" was identified as spam by Gothick Akismet and added to the moderation queue.
+A post at "{SITENAME}" was identified as spam by Akismet and added to the moderation queue.
 
 Title: {TOPIC_TITLE}
 URL: {TOPIC_URL}

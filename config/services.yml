@@ -6,7 +6,6 @@ services:
       - @request
       - @config
       - @log
-      - @user_loader
       - @auth
       - @service_container
       - %core.php_ext%

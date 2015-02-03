@@ -2,7 +2,7 @@
 /**
  *
  * @package phpBB Extension - Gothick Akismet
- * @copyright (c) 2015 Matt Gibson
+ * @copyright (c) 2015 Matt Gibson Creative Ltd.
  * @license http://opensource.org/licenses/gpl-2.0.php GNU General Public License v2
  *
  */
@@ -77,7 +77,6 @@ class main_test extends \phpbb_test_case
 				$request,
 				new \phpbb\config\config(array('gothick_akismet_user_id' => 1)),
 				new \phpbb\log\null(),
-				new \gothick\akismet\tests\mock\user_loader(),
 				$this->getMock('\phpbb\auth\auth'),
 				$phpbb_container,
 				'.php', // $php_ext,
