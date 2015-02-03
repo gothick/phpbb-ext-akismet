@@ -8,8 +8,8 @@
    "license": "GPL-2.0",
    "authors": [{
       "name": "Matt Gibson",
-      "email": "gothick@gothick.org.uk",
-      "homepage": "http://gothick.org.uk",
+      "email": "matt@mattgibsoncreative.co.uk",
+      "homepage": "http://mattgibsoncreative.co.uk",
       "role": "Lead Developer"
    }],
    "require": {
@@ -21,7 +21,7 @@
       "phpbb/epv": "dev-master"
    },
    "extra": {
-      "display-name": "Gothick Akismet Anti-Spam Extension",
+      "display-name": "Akismet Anti-Spam Extension",
       "soft-require" : {
          "phpbb/phpbb": ">=3.1.0-RC2,<3.2.*@dev"
       }
