@@ -1,6 +1,8 @@
 # phpbb-ext-akismet
 
-27 January 2015: This is in the very early stages of development! 
+[![Build Status](https://travis-ci.org/gothick/phpbb-ext-akismet.svg?branch=master)](https://travis-ci.org/gothick/phpbb-ext-akismet)
+
+**Note** 27 January 2015: This is in the very early stages of development! 
 Don't use me yet :D
 
 ## Known issues:
