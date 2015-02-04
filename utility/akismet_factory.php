@@ -32,7 +32,7 @@ class akismet_factory
 	 * Heavy lifting is done only if the user actually tries
 	 * to post a message.
 	 *
-	 * @param \phpbb\config\config $request
+	 * @param \phpbb\config\config $config
 	 * @param \phpbb\log\log_interface $log
 	 * @param \phpbb\user $user
 	 */
