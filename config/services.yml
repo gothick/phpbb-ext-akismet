@@ -1,25 +1,27 @@
 services:
-  gothick.akismet.listener:
-    class: gothick\akismet\event\main_listener
-    arguments:
-      - @user
-      - @request
-      - @config
-      - @log
-      - @auth
-      - @service_container
-      - %core.php_ext%
-      - %core.root_path%
-    tags:
-      - { name: event.listener }
-  gothick.akismet.tijsverkoyen.akismet.factory:
-    class: gothick\akismet\utility\akismet_factory
-    arguments:
-      - @config
-      - @log
-      - @user
-  gothick.akismet.tijsverkoyen.akismet:
-    class: TijsVerkoyen\Akismet\Akismet
-    factory_service: gothick.akismet.tijsverkoyen.akismet.factory
-    factory_method: createAkismet
 
+    gothick.akismet.listener:
+        class: gothick\akismet\event\main_listener
+        arguments:
+            - @user
+            - @request
+            - @config
+            - @log
+            - @auth
+            - @service_container
+            - %core.php_ext%
+            - %core.root_path%
+        tags:
+            - { name: event.listener }
+
+    gothick.akismet.tijsverkoyen.akismet.factory:
+        class: gothick\akismet\utility\akismet_factory
+        arguments:
+            - @config
+            - @log
+            - @user
+
+    gothick.akismet.tijsverkoyen.akismet:
+        class: TijsVerkoyen\Akismet\Akismet
+        factory_service: gothick.akismet.tijsverkoyen.akismet.factory
+        factory_method: createAkismet
