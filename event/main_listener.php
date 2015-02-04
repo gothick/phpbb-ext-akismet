@@ -170,7 +170,7 @@ class main_listener implements EventSubscriberInterface
 					// we'll give the post the benefit of the doubt, but log a
 					// warning.
 					$this->log->add('critical',
-							$this->$user->data['user_id'],
+							$this->user->data['user_id'],
 							$this->user->ip,
 							'AKISMET_LOG_CALL_FAILED', false,
 							array(
