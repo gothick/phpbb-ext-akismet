@@ -25,7 +25,8 @@ class main_listener implements EventSubscriberInterface
 	static public function getSubscribedEvents ()
 	{
 		return array(
-				'core.posting_modify_submit_post_before' => 'check_submitted_post'
+				'core.posting_modify_submit_post_before' => 'check_submitted_post',
+				'core.notification_manager_add_notifications' => 'add_akismet_details_to_notification'
 		);
 	}
 
@@ -185,6 +186,9 @@ class main_listener implements EventSubscriberInterface
 					// Whatever the post status was before, this will override it
 					// and mark it as unapproved.
 					$data['force_approved_state'] = ITEM_UNAPPROVED;
+					// This will be used by our notification event listener to
+					// figure out that the post was moderated by Akismet.
+					$data['gothick_akismet_unapproved'] = true;
 					$event['data'] = $data;
 
 					// Note our action in the moderation log
@@ -210,6 +214,27 @@ class main_listener implements EventSubscriberInterface
 							));
 				}
 			}
+		}
+	}
+	/**
+	 * We send out customised versions of the standard post_in_queue and
+	 * topic_in_queue notifications so that people can tell that the reason
+	 * for queueing was an Akismet spam detection rather than any other
+	 * reason.
+	 *
+	 * @param unknown $event
+	 */
+	public function add_akismet_details_to_notification ($event)
+	{
+		if ($event['notification_type_name'] == 'notification.type.post_in_queue' ||
+			$event['notification_type_name'] == 'notification.type.topic_in_queue')
+		{
+			$data = $event['data'];
+			if (isset($data['gothick_akismet_unapproved']))
+			{
+				$event['notification_type_name'] = 'gothick.akismet.' . $event['notification_type_name'];
+			}
+			$event['data'] = $data;
 		}
 	}
 }
