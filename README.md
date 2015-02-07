@@ -2,18 +2,12 @@
 
 [![Build Status](https://travis-ci.org/gothick/phpbb-ext-akismet.svg?branch=master)](https://travis-ci.org/gothick/phpbb-ext-akismet)
 
-**Note** 27 January 2015: This is in the very early stages of development! 
-Don't use me yet :D
+**Note**: This is beta software. Don't install it on a production board. Currently it's compatible with phpBB 3.1.x ("Ascraeus"), and it seems to work for me, but your mileage very definitely may vary.
 
-## Known issues:
+A phpBB Extension that runs all new topics and replies through the popular [Akismet](http://akismet.com) anti-spam service. Anything that Akismet detects as spam will be placed in the moderation queue.
 
-* Moderation log entries and notification emails may not appear in the
-language of the nominated Akismet user ("Akismet username" in the 
-extension configuration.) Either I'm doing something wrong, or it's 
-annoyingly difficult to get phpBB's language stuff working in the 
-language of someone other than the current $user...
+* Install in the normal way.
+* Configure under Extensions->Akismet Settings. You'll need an API key for Akismet. (You can opt to pay nothing for one if it's for non-commercial use.)
 
-* I use [enable_super_globals()]() for calls to [a third-party 
-Akismet client](https://github.com/tijsverkoyen/Akismet), at it makes
-significant use of the `$_SERVER` variable. This looks safe to me,
-but I imagine it'll raise the odd eyebrow among phpBB 3.1 devs.  
+Admins and moderators will bypass the check automatically. Any moderation action taken by the Extension will appear in the Moderation log. Moderation notification emails will note specifically if the moderation was due to an Akismet check.
+
