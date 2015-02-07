@@ -14,6 +14,15 @@ services:
         tags:
             - { name: event.listener }
 
+    gothick.akismet.admin.controller:
+        class: gothick\akismet\controller\admin_controller
+        arguments:
+            - @request
+            - @template
+            - @user
+            - @log
+            - @config
+
     gothick.akismet.tijsverkoyen.akismet.factory:
         class: gothick\akismet\utility\akismet_factory
         arguments:
