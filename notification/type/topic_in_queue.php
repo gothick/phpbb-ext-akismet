@@ -1,4 +1,12 @@
 <?php
+/**
+ * Akismet custom "topic in queue" notification
+ *
+ * @package phpBB Extension - Gothick Akismet
+ * @copyright (c) 2015 Matt Gibson Creative Ltd.
+ * @license http://opensource.org/licenses/gpl-2.0.php GNU General Public License v2
+ *
+ */
 
 namespace gothick\akismet\notification\type;
 

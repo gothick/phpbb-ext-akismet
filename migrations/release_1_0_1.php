@@ -1,5 +1,6 @@
 <?php
 /**
+ * Akismet notification type migrations.
  *
  * @package phpBB Extension - Gothick Akismet
  * @copyright (c) 2015 Matt Gibson Creative Ltd.

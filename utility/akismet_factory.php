@@ -1,5 +1,6 @@
 <?php
 /**
+ * Akismet factory.
  *
  * @package phpBB Extension - Akismet
  * @copyright (c) 2015 Matt Gibson gothick@gothick.org.uk
@@ -9,7 +10,10 @@
 namespace gothick\akismet\utility;
 
 /**
- * Akismet Factory
+ * The Akismet Factory class is used to create a new vendor Akismet
+ * API wrapper class using our configured API key and board URL. These
+ * need to be passed into the constructor, so a factory seemed a good
+ * approach that would allow us to unit test easily.
  */
 class akismet_factory
 {

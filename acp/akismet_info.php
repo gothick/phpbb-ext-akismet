@@ -1,5 +1,6 @@
 <?php
 /**
+ * Akismet settings ACP module info.
  *
  * @package phpBB Extension - Gothick Akismet
  * @copyright (c) 2015 Matt Gibson Creative Ltd.
@@ -10,7 +11,6 @@ namespace gothick\akismet\acp;
 
 class akismet_info
 {
-
 	function module ()
 	{
 		return array(
