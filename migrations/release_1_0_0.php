@@ -10,13 +10,6 @@ namespace gothick\akismet\migrations;
 
 class release_1_0_0 extends \phpbb\db\migration\migration
 {
-
-	public function effectively_installed ()
-	{
-		return isset($this->config['gothick_akismet_api_key']) &&
-			isset($this->config['gothick_akismet_url']);
-	}
-
 	static public function depends_on ()
 	{
 		return array(
