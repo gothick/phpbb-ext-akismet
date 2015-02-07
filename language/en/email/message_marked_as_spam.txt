@@ -1,9 +1,0 @@
-A post at "{SITENAME}" was identified as spam by Akismet and added to the moderation queue.
-
-Title: {TOPIC_TITLE}
-URL: {TOPIC_URL}
-Posting user: {POSTING_USER_USERNAME}
-Posting user profile: {POSTING_USER_URL}  
-Post body:
-
-{POST_TEXT}
