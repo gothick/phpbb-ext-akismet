@@ -24,6 +24,10 @@ namespace gothick\akismet;
 */
 class ext extends \phpbb\extension\base
 {
+	protected static $notification_types = array(
+			'gothick.akismet.notification.type.topic_in_queue',
+			'gothick.akismet.notification.type.post_in_queue',
+	);
 	/**
 	* Enable our notifications.
 	*
@@ -38,8 +42,10 @@ class ext extends \phpbb\extension\base
 			case '': // Empty means nothing has run yet
 				/* @var $phpbb_notifications \phpbb\notification\manager */
 				$phpbb_notifications = $this->container->get('notification_manager');
-				$phpbb_notifications->enable_notifications('gothick.akismet.notification.type.topic_in_queue');
-				$phpbb_notifications->enable_notifications('gothick.akismet.notification.type.post_in_queue');
+				foreach (self::$notification_types as $type)
+				{
+					$phpbb_notifications->enable_notifications($type);
+				}
 				return 'notifications';
 			break;
 			default:
@@ -62,8 +68,10 @@ class ext extends \phpbb\extension\base
 			case '': // Empty means nothing has run yet
 				/* @var $phpbb_notifications \phpbb\notification\manager */
 				$phpbb_notifications = $this->container->get('notification_manager');
-				$phpbb_notifications->disable_notifications('gothick.akismet.notification.type.topic_in_queue');
-				$phpbb_notifications->disable_notifications('gothick.akismet.notification.type.post_in_queue');
+				foreach (self::$notification_types as $type)
+				{
+					$phpbb_notifications->disable_notifications($type);
+				}
 				return 'notifications';
 			break;
 			default:
@@ -86,8 +94,10 @@ class ext extends \phpbb\extension\base
 			case '': // Empty means nothing has run yet
 				/* @var $phpbb_notifications \phpbb\notification\manager */
 				$phpbb_notifications = $this->container->get('notification_manager');
-				$phpbb_notifications->purge_notifications('gothick.akismet.notification.type.topic_in_queue');
-				$phpbb_notifications->purge_notifications('gothick.akismet.notification.type.post_in_queue');
+				foreach (self::$notification_types as $type)
+				{
+					$phpbb_notifications->purge_notifications($type);
+				}
 				return 'notifications';
 			break;
 			default:
