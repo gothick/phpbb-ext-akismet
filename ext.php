@@ -9,6 +9,7 @@
  */
 
 namespace gothick\akismet;
+
 /**
 * Extension class for custom enable/disable/purge actions
 *
