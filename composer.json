@@ -3,7 +3,7 @@
    "type": "phpbb-extension",
    "description": "Akismet Anti-Spam Extension for PHPBB",
    "homepage": "https://github.com/gothick/phpbb-ext-akismet",
-   "version": "0.1.1",
+   "version": "0.1.2",
    "time": "2015-01-16",
    "license": "GPL-2.0",
    "authors": [{
