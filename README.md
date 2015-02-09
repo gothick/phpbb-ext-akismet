@@ -14,7 +14,7 @@ Admins and moderators will bypass the check automatically. Any moderation action
 
 ## Future Roadmap
 
+* Add configuration option for skipping the check if a user has > N approved posts already.
 * Allow reporting (to Akismet) of missed spam and false positivies.
-* Allow more configuration options (e.g. only run for users in the Newly Registered Users group, or only for those with fewer than a certain number of existing posts.)
 * Show basic statistics of spam detections on an ACP page.
 * ACP page to verify the API key and connection to the Akismet servers.
