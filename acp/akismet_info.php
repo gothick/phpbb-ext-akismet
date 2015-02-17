@@ -11,7 +11,7 @@ namespace gothick\akismet\acp;
 
 class akismet_info
 {
-	function module ()
+	public function module ()
 	{
 		return array(
 				'filename' => '\gothick\akismet\acp\akismet_module',
