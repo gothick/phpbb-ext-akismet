@@ -16,16 +16,16 @@ if (empty($lang) || ! is_array($lang))
 	$lang = array();
 }
 
-$lang = array_merge($lang,
+$lang = array_merge($lang, 
 		array(
-				'ACP_AKISMET_WELCOME' => 'Gothick Akismet �g���@�\�ւ悤����',
-				'ACP_AKISMET_INTRO' => '���̊g���@�\��SPAM���炠�Ȃ��̌f����ی삷�邽�߂�<a href="http://akismet.com">Automatic Akismet</a>�T�[�r�X���g�p���A�^�킵���V�K���e�𒼐ڎ����I�ɏ��F�҂��ɂ��܂��B',
-				'ACP_AKISMET_ADMINS_AND_MODS_OKAY' => '�f���̊Ǘ��ҋy�у��f���[�^�[����̑S�Ă̓��e�͊��S�Ƀ`�F�b�N���o�C�p�X���܂��B',
-				'ACP_AKISMET_SIGN_UP' => '���̊g���@�\���g�p����ɂ́A�܂��ŏ���<a href="http://akismet.com">API�L�[�̂��߂ɃT�C���A�b�v����</a>�A���ꂩ��ȉ��ɂ��̃L�[����͂��܂��B',
-				'ACP_AKISMET_UNENCRYPTED_WARNING' => '�V�K�g�s�b�N�y�ѓ��e�̓`�F�b�N���邽�߂�Akismet�T�[�o�[�ֈÍ�������Ă��Ȃ��A�܂�W����HTTP����ēn����܂��B',
+				'ACP_AKISMET_WELCOME' => 'Gothick Akismet 拡張機能へようこそ',
+				'ACP_AKISMET_INTRO' => 'この拡張機能はSPAMからあなたの掲示板を保護するために<a href="http://akismet.com">Automatic Akismet</a>サービスを使用し、疑わしい新規投稿を直接自動的に承認待ちにします。',
+				'ACP_AKISMET_ADMINS_AND_MODS_OKAY' => '掲示板の管理者及びモデレーターからの全ての投稿は完全にチェックをバイパスします。',
+				'ACP_AKISMET_SIGN_UP' => 'この拡張機能を使用するには、まず最初に<a href="http://akismet.com">APIキーのためにサインアップをし</a>、それから以下にそのキーを入力します。',
+				'ACP_AKISMET_UNENCRYPTED_WARNING' => '新規トピック及び投稿はチェックするためにAkismetサーバーへ暗号化されていない、つまり標準のHTTPを介して渡されます。',
 
-				'ACP_AKISMET_SETTING_CHANGED' => 'Akismet�ݒ���X�V���܂���', // For log
-				'ACP_AKISMET_SETTING_SAVED' => '�ݒ��ۑ����܂���',
+				'ACP_AKISMET_SETTING_CHANGED' => 'Akismet設定を更新しました', // For log
+				'ACP_AKISMET_SETTING_SAVED' => '設定を保存しました',
 
-				'ACP_AKISMET_API_KEY' => 'Akismet API �L�[',
+				'ACP_AKISMET_API_KEY' => 'Akismet API キー'
 		));
