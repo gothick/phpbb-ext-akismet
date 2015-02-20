@@ -18,7 +18,7 @@ if (empty($lang) || ! is_array($lang))
 
 $lang = array_merge($lang,
 		array(
-				'ACP_AKISMET_WELCOME' => 'Welcome to the Gothick Akismet extension',
+				'ACP_AKISMET_WELCOME' => 'Welcome to Akismet',
 				'ACP_AKISMET_INTRO' => 'This extension will use the <a href="http://akismet.com">Automattic Akismet</a> service to protect your board from spam, placing suspcious new posts directly into the moderation queue automatically.',
 				'ACP_AKISMET_ADMINS_AND_MODS_OKAY' => 'All posts from board administrators and moderators will bypass the check completely.',
 				'ACP_AKISMET_SIGN_UP' => 'To use this extension, you must first <a href="http://akismet.com">sign up for an API key</a>, then enter the key below.',
