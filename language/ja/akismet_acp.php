@@ -16,7 +16,7 @@ if (empty($lang) || ! is_array($lang))
 	$lang = array();
 }
 
-$lang = array_merge($lang, 
+$lang = array_merge($lang,
 		array(
 				'ACP_AKISMET_WELCOME' => 'Gothick Akismet 拡張機能へようこそ',
 				'ACP_AKISMET_INTRO' => 'この拡張機能はSPAMからあなたの掲示板を保護するために<a href="http://akismet.com">Automatic Akismet</a>サービスを使用し、疑わしい新規投稿を直接自動的に承認待ちにします。',
