@@ -22,6 +22,7 @@ services:
             - @user
             - @log
             - @config
+            - @language
 
     gothick.akismet.tijsverkoyen.akismet.factory:
         class: gothick\akismet\utility\akismet_factory

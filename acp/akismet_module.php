@@ -21,17 +21,17 @@ class akismet_module
 
 	public function main ($id, $mode)
 	{
-		global $phpbb_container, $user;
+		global $phpbb_container, $language;
 
 		// Add our ACP language file.
-		$user->add_lang_ext('gothick/akismet', 'akismet_acp');
+		$language->add_lang('akismet_acp', 'gothick/akismet');
 
 		/* @var $admin_controller \gothick\akismet\controller\admin_controller */
 		$admin_controller = $phpbb_container->get('gothick.akismet.admin.controller');
 		$admin_controller->set_action($this->u_action);
 
 		$this->tpl_name = 'akismet_body';
-		$this->page_title = $user->lang('ACP_AKISMET_TITLE');
+		$this->page_title = $language->lang('ACP_AKISMET_TITLE');
 
 		$admin_controller->display_settings();
 	}

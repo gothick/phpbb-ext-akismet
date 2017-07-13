@@ -27,11 +27,14 @@ class admin_controller
 	/** @var \phpbb\log\log_interface */
 	protected $log;
 
-	/* @var \phpbb\config\config */
+	/** @var \phpbb\config\config */
 	protected $config;
 
 	/** @var string Custom form action */
 	protected $u_action;
+
+	/** @var \phpbb\language\language */
+	protected $language;
 
 	const FORM_KEY = 'gothick/akismet';
 
@@ -43,13 +46,15 @@ class admin_controller
 	* @param \phpbb\user $user User object
 	* @param \phpbb\log\log_interface $log Log object
 	* @param \phpbb\config\config $config Config object
+	* @param \phpbb\language\language $language Language object
 	*/
 	public function __construct(
 			\phpbb\request\request $request,
 			\phpbb\template\template $template,
 			\phpbb\user $user,
 			\phpbb\log\log_interface $log,
-			\phpbb\config\config $config
+			\phpbb\config\config $config,
+			\phpbb\language\language $language
 		)
 	{
 		$this->request = $request;
@@ -57,6 +62,7 @@ class admin_controller
 		$this->user = $user;
 		$this->log = $log;
 		$this->config = $config;
+		$this->language = $language;
 	}
 
 	/**
@@ -84,7 +90,7 @@ class admin_controller
 			);
 
 			trigger_error(
-					$this->user->lang('ACP_AKISMET_SETTING_SAVED') .
+					$this->lang('ACP_AKISMET_SETTING_SAVED') .
 					adm_back_link($this->u_action)
 			);
 
