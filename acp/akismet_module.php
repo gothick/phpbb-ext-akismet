@@ -21,9 +21,10 @@ class akismet_module
 
 	public function main ($id, $mode)
 	{
-		global $phpbb_container, $language;
+		global $phpbb_container;
 
-		// Add our ACP language file.
+		/** @var \phpbb\language\language $language */
+		$language = $phpbb_container->get('language');
 		$language->add_lang('akismet_acp', 'gothick/akismet');
 
 		/* @var $admin_controller \gothick\akismet\controller\admin_controller */
