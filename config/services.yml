@@ -38,28 +38,14 @@ services:
 
     gothick.akismet.notification.type.post_in_queue:
         class: gothick\akismet\notification\type\post_in_queue
-        scope: prototype
-        arguments:
-            - '@dbal.conn'
-            - '@language'
-            - '@user'
-            - '@auth'
-            - '%core.root_path%'
-            - '%core.php_ext%'
-            - '%tables.user_notifications%'
+        shared: false
+        parent: notification.type.post_in_queue
         tags:
             - { name: notification.type }
 
     gothick.akismet.notification.type.topic_in_queue:
         class: gothick\akismet\notification\type\topic_in_queue
-        scope: prototype
-        arguments:
-            - '@dbal.conn'
-            - '@language'
-            - '@user'
-            - '@auth'
-            - '%core.root_path%'
-            - '%core.php_ext%'
-            - '%tables.user_notifications%'
+        shared: false
+        parent: notification.type.topic_in_queue
         tags:
             - { name: notification.type }
