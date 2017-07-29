@@ -3,33 +3,33 @@ services:
     gothick.akismet.listener:
         class: gothick\akismet\event\main_listener
         arguments:
-            - @user
-            - @request
-            - @config
-            - @log
-            - @auth
-            - @service_container
-            - %core.php_ext%
-            - %core.root_path%
+            - '@user'
+            - '@request'
+            - '@config'
+            - '@log'
+            - '@auth'
+            - '@service_container'
+            - '%core.php_ext%'
+            - '%core.root_path%'
         tags:
             - { name: event.listener }
 
     gothick.akismet.admin.controller:
         class: gothick\akismet\controller\admin_controller
         arguments:
-            - @request
-            - @template
-            - @user
-            - @log
-            - @config
-            - @language
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@log'
+            - '@config'
+            - '@language'
 
     gothick.akismet.tijsverkoyen.akismet.factory:
         class: gothick\akismet\utility\akismet_factory
         arguments:
-            - @config
-            - @log
-            - @user
+            - '@config'
+            - '@log'
+            - '@user'
 
     gothick.akismet.tijsverkoyen.akismet:
         class: TijsVerkoyen\Akismet\Akismet
