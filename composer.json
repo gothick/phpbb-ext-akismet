@@ -4,7 +4,7 @@
    "description": "Akismet Anti-Spam Extension for PHPBB",
    "homepage": "https://github.com/gothick/phpbb-ext-akismet",
    "version": "0.2.0",
-   "time": "2015-01-16",
+   "time": "2017-07-31",
    "license": "GPL-2.0",
    "authors": [{
       "name": "Matt Gibson",
