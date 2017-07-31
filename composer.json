@@ -13,7 +13,7 @@
       "role": "Lead Developer"
    }],
    "require": {
-      "php": ">=5.3.3",
+      "php": ">=5.5.9",
       "composer/installers": "~1.0",
       "tijsverkoyen/akismet": "dev-master"
    },
