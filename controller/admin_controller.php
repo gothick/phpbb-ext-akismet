@@ -66,7 +66,7 @@ class admin_controller
 	}
 
 	/**
-	* GeoModerate settings
+	* Akismet settings
 	*
 	*/
 	public function display_settings()
