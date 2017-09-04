@@ -3,32 +3,33 @@ services:
     gothick.akismet.listener:
         class: gothick\akismet\event\main_listener
         arguments:
-            - @user
-            - @request
-            - @config
-            - @log
-            - @auth
-            - @service_container
-            - %core.php_ext%
-            - %core.root_path%
+            - '@user'
+            - '@request'
+            - '@config'
+            - '@log'
+            - '@auth'
+            - '@service_container'
+            - '%core.php_ext%'
+            - '%core.root_path%'
         tags:
             - { name: event.listener }
 
     gothick.akismet.admin.controller:
         class: gothick\akismet\controller\admin_controller
         arguments:
-            - @request
-            - @template
-            - @user
-            - @log
-            - @config
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@log'
+            - '@config'
+            - '@language'
 
     gothick.akismet.tijsverkoyen.akismet.factory:
         class: gothick\akismet\utility\akismet_factory
         arguments:
-            - @config
-            - @log
-            - @user
+            - '@config'
+            - '@log'
+            - '@user'
 
     gothick.akismet.tijsverkoyen.akismet:
         class: TijsVerkoyen\Akismet\Akismet
@@ -37,36 +38,14 @@ services:
 
     gothick.akismet.notification.type.post_in_queue:
         class: gothick\akismet\notification\type\post_in_queue
-        scope: prototype
-        arguments:
-            - @user_loader
-            - @dbal.conn
-            - @cache.driver
-            - @user
-            - @auth
-            - @config
-            - %core.root_path%
-            - %core.php_ext%
-            - %tables.notification_types%
-            - %tables.notifications%
-            - %tables.user_notifications%
+        shared: false
+        parent: notification.type.post_in_queue
         tags:
             - { name: notification.type }
 
     gothick.akismet.notification.type.topic_in_queue:
         class: gothick\akismet\notification\type\topic_in_queue
-        scope: prototype
-        arguments:
-            - @user_loader
-            - @dbal.conn
-            - @cache.driver
-            - @user
-            - @auth
-            - @config
-            - %core.root_path%
-            - %core.php_ext%
-            - %tables.notification_types%
-            - %tables.notifications%
-            - %tables.user_notifications%
+        shared: false
+        parent: notification.type.topic_in_queue
         tags:
             - { name: notification.type }
