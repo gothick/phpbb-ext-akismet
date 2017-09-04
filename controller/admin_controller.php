@@ -90,7 +90,7 @@ class admin_controller
 			);
 
 			trigger_error(
-					$this->lang('ACP_AKISMET_SETTING_SAVED') .
+					$this->language->lang('ACP_AKISMET_SETTING_SAVED') .
 					adm_back_link($this->u_action)
 			);
 
