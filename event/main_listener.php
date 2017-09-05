@@ -105,7 +105,8 @@ class main_listener implements EventSubscriberInterface
 		if (! ($this->auth->acl_getf_global('m_') ||
 				$this->auth->acl_getf_global('a_')))
 		{
-			if ($this->is_spam($event['data']))
+			$data = $event['data'];
+			if ($this->is_spam($data))
 			{
 				// Whatever the post status was before, this will override it
 				// and mark it as unapproved.
