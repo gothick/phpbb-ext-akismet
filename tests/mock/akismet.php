@@ -9,8 +9,6 @@
 
 namespace gothick\akismet\tests\mock;
 
-require_once(__DIR__ . '/../../vendor/autoload.php');
-
 /**
  * TijsVerkoyen Akismet Mock
  *
