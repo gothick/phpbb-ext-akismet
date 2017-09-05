@@ -58,19 +58,10 @@ class main_test extends \phpbb_test_case
 	{
 		$phpbb_container = new \phpbb_mock_container_builder();
 		$mock_akismet = new \gothick\akismet\tests\mock\akismet();
-		$phpbb_container->set('gothick.akismet.tijsverkoyen.akismet',
+		$phpbb_container->set('gothick.akismet.client',
 				$mock_akismet);
 
 		$request = $this->getMock('\phpbb\request\request');
-
-		// Make sure we enable, (and, more importantly, disable!) super globals around
-		// the use of the vendor Akismet library.
-		$request->expects($this->at(0))
-			->method('enable_super_globals')
-			->with();
-		$request->expects($this->at(1))
-			->method('disable_super_globals')
-			->with();
 
 		$listener = new \gothick\akismet\event\main_listener(
 				new \gothick\akismet\tests\mock\user($username),

@@ -64,8 +64,8 @@ class akismet_factory
 		}
 		else
 		{
-			return new \TijsVerkoyen\Akismet\Akismet($this->akismet_api_key,
-					generate_board_url());
+			// TODO: Grab version from somewhere
+			return new \Gothick\AkismetClient\Client(generate_board_url(), 'phpBB',  $this->config['version'], $this->akismet_api_key);
 		}
 	}
 }

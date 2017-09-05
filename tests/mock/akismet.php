@@ -10,24 +10,20 @@
 namespace gothick\akismet\tests\mock;
 
 /**
- * TijsVerkoyen Akismet Mock
- *
- * This simple mock object simply returns true if the author of any
- * message tested is 'viagra-test-123', which is also the actual
- * Akismet API's standard "always positive" test user.
- *
+ * 
+ * Dead simple Akismet mock.
+ * 
  * @package Gothick Akismet
  */
-class Akismet extends \TijsVerkoyen\Akismet\Akismet
+class Akismet extends \Gothick\AkismetClient\Client
 {
 	public function __construct ()
 	{
 	}
 
-	public function isSpam ($content, $author = null, $email = null, $url = null,
-			$permalink = null, $type = null)
+	public function commentCheck($user_ip, $user_agent, $other_params = array(), $server_params = array(), $user_role = 'user', $is_test = false)
 	{
-		if ($author == 'viagra-test-123')
+		if ($other_params['comment_author'] == 'viagra-test-123')
 		{
 			return true;
 		}

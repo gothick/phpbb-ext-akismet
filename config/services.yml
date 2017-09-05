@@ -24,16 +24,16 @@ services:
             - '@config'
             - '@language'
 
-    gothick.akismet.tijsverkoyen.akismet.factory:
+    gothick.akismet.client.factory:
         class: gothick\akismet\utility\akismet_factory
         arguments:
             - '@config'
             - '@log'
             - '@user'
 
-    gothick.akismet.tijsverkoyen.akismet:
-        class: TijsVerkoyen\Akismet\Akismet
-        factory_service: gothick.akismet.tijsverkoyen.akismet.factory
+    gothick.akismet.client:
+        class: Gothick\AkismetClient\Client
+        factory_service: gothick.akismet.client.factory
         factory_method: createAkismet
 
     gothick.akismet.notification.type.post_in_queue:

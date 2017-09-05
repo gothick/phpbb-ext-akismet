@@ -105,118 +105,177 @@ class main_listener implements EventSubscriberInterface
 		if (! ($this->auth->acl_getf_global('m_') ||
 				$this->auth->acl_getf_global('a_')))
 		{
-
-			// Load our third-party library. We use a factory method that
-			// reads the configured API key from this extension's settings,
-			// as the third-party library takes the API key as a constructor
-			// parameter. (The factory method means we can also create
-			// a mock Akismet client library for testing.)
-
-			/* @var $akismet \TijsVerkoyen\Akismet */
-			$akismet = $this->phpbb_container->get(
-					'gothick.akismet.tijsverkoyen.akismet',
-					ContainerInterface::NULL_ON_INVALID_REFERENCE);
-
-			// Our factory may not have returned an Akismet object if there
-			// was no API key set in the configuration, so we still need to
-			// check if one was passed back to us. It's okay if one wasn't;
-			// the factory method will log an error, and we'll silently not
-			// check for spam. We don't want every post to the board to
-			// be marked as spam in between installing the extension and the
-			// administrator configuring the API key!
-			if (isset($akismet))
+			if ($this->is_spam($event['data']))
 			{
-				$data = $event['data'];
+				// Whatever the post status was before, this will override it
+				// and mark it as unapproved.
+				$data['force_approved_state'] = ITEM_UNAPPROVED;
+				// This will be used by our notification event listener to
+				// figure out that the post was moderated by Akismet.
+				$data['gothick_akismet_unapproved'] = true;
+				$event['data'] = $data;
 
-				// Akismet fields
-				$content = $data['message'];
-				$email = $this->user->data['user_email'];
-				$author = $this->user->data['username_clean'];
-
-				// URL of poster, i.e. poster's "website" profile field.
-				$this->user->get_profile_fields($this->user->data['user_id']);
-				$url = isset($this->user->profile_fields['pf_phpbb_website']) ? $this->user->profile_fields['pf_phpbb_website'] : '';
-
-				// URL of topic
-				$permalink = generate_board_url() . '/' . append_sid(
-						"viewtopic.{$this->php_ext}",
-						"t={$data['topic_id']}",
-						true,
-						''
-					);
-
-				// The phpBB team have indicated that this use of enable_super_globals()
-				// doesn't seem like a terrible thing, given it's a workaround for a
-				// third-party library I'm bringing in as-is with Composer.
-				// https://www.phpbb.com/community/viewtopic.php?f=461&t=2290231#p13918466
-				$this->request->enable_super_globals();
-
-				$is_spam = false;
-
-				try
+				// Note our action in the moderation log
+				if ($event['mode'] == 'post' || ($event['mode'] == 'edit' &&
+						$data['topic_first_post_id'] == $data['post_id']))
 				{
-					// 'forum-post' recommended for type:
-					// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
-					$is_spam = $akismet->isSpam(
-							$content,
-							$author,
-							$email,
-							$url,
-							$permalink,
-							'forum-post'
-					);
+					$log_message = 'AKISMET_LOG_TOPIC_DISAPPROVED';
 				}
-				catch (\Exception $e)
+				else
 				{
-					// If Akismet's down, or there's some other problem like that,
-					// we'll give the post the benefit of the doubt, but log a
-					// warning.
-					$this->log->add('critical',
-							$this->user->data['user_id'],
-							$this->user->ip,
-							'AKISMET_LOG_CALL_FAILED', false,
-							array(
-									$e->getMessage()
-							));
+					$log_message = 'AKISMET_LOG_POST_DISAPPROVED';
 				}
 
-				$this->request->disable_super_globals();
-
-				if ($is_spam)
-				{
-					// Whatever the post status was before, this will override it
-					// and mark it as unapproved.
-					$data['force_approved_state'] = ITEM_UNAPPROVED;
-					// This will be used by our notification event listener to
-					// figure out that the post was moderated by Akismet.
-					$data['gothick_akismet_unapproved'] = true;
-					$event['data'] = $data;
-
-					// Note our action in the moderation log
-					if ($event['mode'] == 'post' || ($event['mode'] == 'edit' &&
-							$data['topic_first_post_id'] == $data['post_id']))
-					{
-						$log_message = 'AKISMET_LOG_TOPIC_DISAPPROVED';
-					}
-					else
-					{
-						$log_message = 'AKISMET_LOG_POST_DISAPPROVED';
-					}
-
-					$this->log->add(
-							'mod',
-							$this->user->data['user_id'],
-							$this->user->ip,
-							$log_message,
-							false,
-							array(
-									$data['topic_title'],
-									$this->user->data['username']
-							));
-				}
+				$this->log->add(
+						'mod',
+						$this->user->data['user_id'],
+						$this->user->ip,
+						$log_message,
+						false,
+						array(
+								$data['topic_title'],
+								$this->user->data['username']
+						));
 			}
 		}
 	}
+
+	/**
+	 * Check for spam using our handy client. I hear it was written by
+	 * a talented and ruggedly-handsome programmer.
+	 * 
+	 * @param array $data Data array from event that triggered us.
+	 */
+	private function is_spam($data)
+	{
+		$is_spam = false;
+
+		// Akismet fields
+		$params = array();
+		$params['comment_content'] = $data['message'];
+		$params['comment_author_email'] = $this->user->data['user_email'];
+		$params['comment_author'] = $this->user->data['username_clean'];
+
+		// URL of poster, i.e. poster's "website" profile field.
+		$this->user->get_profile_fields($this->user->data['user_id']);
+		$url = isset($this->user->profile_fields['pf_phpbb_website']) ? $this->user->profile_fields['pf_phpbb_website'] : '';
+
+		$params['comment_author_url'] = $url;
+
+		// URL of topic
+		$params['permalink'] = generate_board_url() . '/' . append_sid(
+				"viewtopic.{$this->php_ext}",
+				"t={$data['topic_id']}",
+				true,
+				''
+		);
+		// 'forum-post' recommended for type:
+		// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
+		$params['comment_type'] = 'forum-post';
+
+		/* @var $akismet \Gothick\AkismetClient\Client */
+		$akismet = $this->phpbb_container->get(
+			'gothick.akismet.client',
+			ContainerInterface::NULL_ON_INVALID_REFERENCE
+		);
+
+		// We can't just pass $_SERVER in to our Akismet client as phpBB turns off super globals (which is,
+		// of course, fair enough. Interrogate our request object instead, grabbing as many relevant
+		// things as we can, excluding anything that might leak anything sensitive to Akismet (bear in
+		// mind we're already throwing all the user details and the entire contents of their comment
+		// at Akismet, so it's more our server details I'm worrying about.)
+
+		// "This data is highly useful to Akismet. How the submitted content interacts with the server can 
+		// be very telling, so please include as much of it as possible."
+		// https://akismet.com/development/api/#comment-check
+		$server_vars = array(
+			// TODO: vet these and consider adding more after looking at what's actually in the $_SERVER
+			// variable for a typical request to our fairly typical server.
+			'GATEWAY_INTERFACE',
+			'SERVER_ADDR',
+			'SERVER_NAME',
+			'SERVER_PROTOCOL',
+			'REQUEST_METHOD',
+			'REQUEST_TIME',
+			'REQUEST_TIME_FLOAT',
+			'QUERY_STRING',
+			'HTTP_ACCEPT',
+			'HTTP_ACCEPT_CHARSET',
+			'HTTP_ACCEPT_ENCODING',
+			'HTTP_ACCEPT_LANGUAGE',
+			'HTTP_CONNECTION',
+			'HTTP_HOST',
+			'HTTP_REFERER',
+			'HTTP_USER_AGENT',
+			'HTTPS',
+			'REMOTE_ADDR',
+			'REMOTE_HOST',
+			'REMOTE_PORT',
+			'REMOTE_USER',
+			'REDIRECT_REMOTE_USER',
+			'SCRIPT_FILENAME',
+			'SERVER_PORT',
+			'SERVER_SIGNATURE',
+			'PATH_TRANSLATED',
+			'SCRIPT_NAME',
+			'REQUEST_URI',
+			'PHP_AUTH_DIGEST',
+			'PHP_AUTH_USER',
+			'PHP_AUTH_PW',
+			'AUTH_TYPE',
+			'PATH_INFO',
+			'ORIG_PATH_INFO'
+		);
+
+		// Try to recreate $_SERVER. 
+		$server = array();
+		foreach ($server_vars as $var)
+		{
+			$value = $this->request->server($var, null);
+			if ($value != null)
+			{
+				$server[$var] = $value;
+			}
+		}
+
+		// Our factory may not have returned an Akismet object if there
+		// was no API key set in the configuration, so we still need to
+		// check if one was passed back to us. It's okay if one wasn't;
+		// the factory method will log an error, and we'll silently not
+		// check for spam. We don't want every post to the board to
+		// be marked as spam in between installing the extension and the
+		// administrator configuring the API key!
+		if (isset($akismet))
+		{
+			try
+			{
+				$is_spam = $akismet->commentCheck(
+						$this->user->ip,
+						// TODO: Check this is sending the right thing; we need the user's full User-Agent string
+						$this->user->browser,
+						$params,
+						$server);
+				// TODO: Also available from our result object is isBlatantSpam, indicating something
+				// so obviously spammy that it can be silently discarded without human intervention. 
+				// Might want to do something more extreme with those.
+			}
+			catch (\Exception $e)
+			{
+				// If Akismet's down, or there's some other problem like that,
+				// we'll give the post the benefit of the doubt, but log a
+				// warning.
+				$this->log->add('critical',
+						$this->user->data['user_id'],
+						$this->user->ip,
+						'AKISMET_LOG_CALL_FAILED', false,
+						array(
+								$e->getMessage()
+						));
+			}
+		}
+		return $is_spam;
+	}
+
 	/**
 	 * We send out customised versions of the standard post_in_queue and
 	 * topic_in_queue notifications so that people can tell that the reason
