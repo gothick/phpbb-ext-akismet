@@ -9,7 +9,7 @@
 
 namespace gothick\akismet\tests\mock;
 
-require (__DIR__ . '/../../vendor/autoload.php');
+require_once(__DIR__ . '/../../vendor/autoload.php');
 
 /**
  * TijsVerkoyen Akismet Mock
@@ -22,7 +22,6 @@ require (__DIR__ . '/../../vendor/autoload.php');
  */
 class Akismet extends \TijsVerkoyen\Akismet\Akismet
 {
-
 	public function __construct ()
 	{
 	}

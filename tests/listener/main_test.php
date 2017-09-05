@@ -11,7 +11,7 @@
 // global functions.
 namespace gothick\akismet\event;
 
-require_once dirname(__FILE__) . '/../../../../../../phpBB/includes/functions.php';
+require_once __DIR__ . '/../../../../../../phpBB/includes/functions.php';
 
 /**
  * Hide the global append_sid method with one that does rather less, so we don't
