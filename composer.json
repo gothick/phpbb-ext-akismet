@@ -12,10 +12,16 @@
       "homepage": "http://mattgibsoncreative.co.uk",
       "role": "Lead Developer"
    }],
+   "repositories": [
+      {
+         "type": "vcs",
+         "url": "https://github.com/gothick/php-akismet"
+      }
+   ],
    "require": {
       "php": ">=5.5.9",
       "composer/installers": "~1.0",
-      "tijsverkoyen/akismet": "dev-master"
+      "gothick/php-akismet": "dev-master"
    },
    "require-dev": {
       "phpbb/epv": "dev-master"
