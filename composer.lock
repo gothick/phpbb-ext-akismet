@@ -129,17 +129,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/gothick/php-akismet.git",
-                "reference": "20c389f5f305c1849f4e1690e6aa449f45c301be"
+                "reference": "0fc59d65ff563b0fc2874ad963186babd7e9358b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gothick/php-akismet/zipball/20c389f5f305c1849f4e1690e6aa449f45c301be",
-                "reference": "20c389f5f305c1849f4e1690e6aa449f45c301be",
+                "url": "https://api.github.com/repos/gothick/php-akismet/zipball/0fc59d65ff563b0fc2874ad963186babd7e9358b",
+                "reference": "0fc59d65ff563b0fc2874ad963186babd7e9358b",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/guzzle": "^6.0",
-                "php": ">=5.6"
+                "php": ">=5.5.38"
             },
             "require-dev": {
                 "phpunit/phpunit": "^6.2"
@@ -167,7 +167,7 @@
                 "source": "https://github.com/gothick/php-akismet/tree/master",
                 "issues": "https://github.com/gothick/php-akismet/issues"
             },
-            "time": "2017-09-05T17:10:15+00:00"
+            "time": "2017-09-05 20:20:30"
         },
         {
             "name": "guzzlehttp/guzzle",
