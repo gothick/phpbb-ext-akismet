@@ -144,7 +144,7 @@ class main_listener implements EventSubscriberInterface
 	/**
 	 * Check for spam using our handy client. I hear it was written by
 	 * a talented and ruggedly-handsome programmer.
-	 * 
+	 *
 	 * @param array $data Data array from event that triggered us.
 	 */
 	private function is_spam($data)
@@ -153,6 +153,10 @@ class main_listener implements EventSubscriberInterface
 
 		// Akismet fields
 		$params = array();
+
+		$params['user_ip'] = $this->user->ip;
+		// TODO: Check this is sending the right thing; we need the user's full User-Agent string
+		$params['user_agent'] = $this->user->browser;
 		$params['comment_content'] = $data['message'];
 		$params['comment_author_email'] = $this->user->data['user_email'];
 		$params['comment_author'] = $this->user->data['username_clean'];
@@ -180,84 +184,84 @@ class main_listener implements EventSubscriberInterface
 			ContainerInterface::NULL_ON_INVALID_REFERENCE
 		);
 
-		// We can't just pass $_SERVER in to our Akismet client as phpBB turns off super globals (which is,
-		// of course, fair enough. Interrogate our request object instead, grabbing as many relevant
-		// things as we can, excluding anything that might leak anything sensitive to Akismet (bear in
-		// mind we're already throwing all the user details and the entire contents of their comment
-		// at Akismet, so it's more our server details I'm worrying about.)
-
-		// "This data is highly useful to Akismet. How the submitted content interacts with the server can 
-		// be very telling, so please include as much of it as possible."
-		// https://akismet.com/development/api/#comment-check
-		$server_vars = array(
-			// TODO: vet these and consider adding more after looking at what's actually in the $_SERVER
-			// variable for a typical request to our fairly typical server.
-			'GATEWAY_INTERFACE',
-			'SERVER_ADDR',
-			'SERVER_NAME',
-			'SERVER_PROTOCOL',
-			'REQUEST_METHOD',
-			'REQUEST_TIME',
-			'REQUEST_TIME_FLOAT',
-			'QUERY_STRING',
-			'HTTP_ACCEPT',
-			'HTTP_ACCEPT_CHARSET',
-			'HTTP_ACCEPT_ENCODING',
-			'HTTP_ACCEPT_LANGUAGE',
-			'HTTP_CONNECTION',
-			'HTTP_HOST',
-			'HTTP_REFERER',
-			'HTTP_USER_AGENT',
-			'HTTPS',
-			'REMOTE_ADDR',
-			'REMOTE_HOST',
-			'REMOTE_PORT',
-			'REMOTE_USER',
-			'REDIRECT_REMOTE_USER',
-			'SCRIPT_FILENAME',
-			'SERVER_PORT',
-			'SERVER_SIGNATURE',
-			'PATH_TRANSLATED',
-			'SCRIPT_NAME',
-			'REQUEST_URI',
-			'PHP_AUTH_DIGEST',
-			'PHP_AUTH_USER',
-			'PHP_AUTH_PW',
-			'AUTH_TYPE',
-			'PATH_INFO',
-			'ORIG_PATH_INFO'
-		);
-
-		// Try to recreate $_SERVER. 
-		$server = array();
-		foreach ($server_vars as $var)
-		{
-			$value = $this->request->server($var, null);
-			if ($value != null)
-			{
-				$server[$var] = $value;
-			}
-		}
-
-		// Our factory may not have returned an Akismet object if there
-		// was no API key set in the configuration, so we still need to
-		// check if one was passed back to us. It's okay if one wasn't;
-		// the factory method will log an error, and we'll silently not
-		// check for spam. We don't want every post to the board to
-		// be marked as spam in between installing the extension and the
-		// administrator configuring the API key!
+		// We may not have got an Akismet client back from the container. It'll quietly fail if
+		// the API key isn't configured, for example.
 		if (isset($akismet))
 		{
+			// We can't just pass $_SERVER in to our Akismet client as phpBB turns off super globals (which is,
+			// of course, fair enough.) Interrogate our request object instead, grabbing as many relevant
+			// things as we can, excluding anything that might leak anything sensitive to Akismet (bear in
+			// mind we're already throwing all the user details and the entire contents of their comment
+			// at Akismet, of course.)
+
+			// https://akismet.com/development/api/#comment-check
+			// "This data is highly useful to Akismet. How the submitted content interacts with the server can
+			// be very telling, so please include as much of it as possible."
+			$server_vars = array(
+					// TODO: vet these and consider adding more after looking at what's actually in the $_SERVER
+					// variable for a typical request to our fairly typical server.
+					'AUTH_TYPE',
+					'GATEWAY_INTERFACE',
+					'HTTPS',
+					'HTTP_ACCEPT',
+					'HTTP_ACCEPT_CHARSET',
+					'HTTP_ACCEPT_ENCODING',
+					'HTTP_ACCEPT_LANGUAGE',
+					'HTTP_CONNECTION',
+					'HTTP_HOST',
+					'HTTP_REFERER',
+					'HTTP_USER_AGENT',
+					'ORIG_PATH_INFO',
+					'PATH_INFO',
+					'PATH_TRANSLATED',
+					'PHP_AUTH_DIGEST',
+					'PHP_AUTH_PW',
+					'PHP_SELF',
+					'PHP_AUTH_USER',
+					'QUERY_STRING',
+					'REDIRECT_REMOTE_USER',
+					'REMOTE_ADDR',
+					'REMOTE_HOST',
+					'REMOTE_PORT',
+					'REMOTE_USER',
+					'REQUEST_METHOD',
+					'REQUEST_SCHEME',
+					'REQUEST_TIME',
+					'REQUEST_TIME_FLOAT',
+					'REQUEST_URI',
+					'SCRIPT_FILENAME',
+					'SCRIPT_NAME',
+					'SCRIPT_URI',
+					'SCRIPT_URL',
+					'SERVER_ADDR',
+					'SERVER_NAME',
+					'SERVER_PORT',
+					'SERVER_PROTOCOL',
+					'SERVER_SIGNATURE',
+					'SERVER_SOFTWARE',
+					'USER'
+			);
+
+			// Try to recreate $_SERVER.
+			$server = array();
+			foreach ($server_vars as $var)
+			{
+				$value = $this->request->server($var, null);
+				if ($value != null)
+				{
+					$server[$var] = $value;
+				}
+			}
+
 			try
 			{
-				$is_spam = $akismet->commentCheck(
-						$this->user->ip,
-						// TODO: Check this is sending the right thing; we need the user's full User-Agent string
-						$this->user->browser,
+				$result = $akismet->commentCheck(
 						$params,
 						$server);
+
+				$is_spam = $result->isSpam();
 				// TODO: Also available from our result object is isBlatantSpam, indicating something
-				// so obviously spammy that it can be silently discarded without human intervention. 
+				// so obviously spammy that it can be silently discarded without human intervention.
 				// Might want to do something more extreme with those.
 			}
 			catch (\Exception $e)

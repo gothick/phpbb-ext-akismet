@@ -51,15 +51,18 @@ class main_test extends \phpbb_test_case
 		);
 	}
 
+	// TODO: Test what happens if we don't put an Akismet object in the container. It
+	// should fail quietly and just not mark anything as spam.
+
 	/**
 	 * @dataProvider handle_data
 	 */
 	public function test_post_check ($username, $message, $should_pass)
 	{
 		$phpbb_container = new \phpbb_mock_container_builder();
-		$mock_akismet = new \gothick\akismet\tests\mock\akismet();
+		$akismet_mock = new \gothick\akismet\tests\mock\akismet_mock();
 		$phpbb_container->set('gothick.akismet.client',
-				$mock_akismet);
+				$akismet_mock);
 
 		$request = $this->getMock('\phpbb\request\request');
 
