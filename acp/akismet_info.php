@@ -16,7 +16,6 @@ class akismet_info
 		return array(
 				'filename' => '\gothick\akismet\acp\akismet_module',
 				'title' => 'ACP_AKISMET_TITLE',
-				'version' => '1.0.1',
 				'modes' => array(
 						'settings' => array(
 								'title' => 'ACP_AKISMET_SETTINGS',
