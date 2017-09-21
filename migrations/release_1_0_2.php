@@ -11,15 +11,10 @@ namespace gothick\akismet\migrations;
 
 class release_1_0_2 extends \phpbb\db\migration\migration
 {
-	protected static $notification_types = array(
-			'gothick.akismet.notification.type.post_in_queue',
-			'gothick.akismet.notification.type.topic_in_queue',
-	);
-
 	static public function depends_on ()
 	{
 		return array(
-				'\gothick\akismet\migrations\release_1_0_2'
+				'\gothick\akismet\migrations\release_1_0_1'
 		);
 	}
 	public function update_data ()
