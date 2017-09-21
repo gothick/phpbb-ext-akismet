@@ -139,42 +139,41 @@ class main_listener implements EventSubscriberInterface
 	 */
 	public function check_new_user ($event)
 	{
-		// TODO: This should depend on a config setting. (NB: If it does, don't check the
-		// config here; check it in the event listener registration so phpBB doesn't even
-		// bother calling us.)
-
-		// We get $vars = array('user_id', 'user_row', 'cp_data');
-		$user_id = $event['user_id']; // Can't use $this->user->data['user_id'] as there isn't an actual user logged in during registration, of course.
-		$user_row = $event['user_row'];
-		$params = [
-				'comment_type' => 'signup',
-				'user_ip' => $this->user->ip,
-				'user_agent' => $this->user->browser,
-				'comment_author' => $user_row['username'],
-				'comment_author_email' => $user_row['user_email']
-		];
-
-		$is_spam = false;
-		$is_blatant_spam = false;
-		$result = $this->akismet_comment_check($user_id, $params);
-		if ($result)
+		if ($this->config['gothick_akismet_check_registrations'])
 		{
-			$is_spam = $result->isSpam();
-			$is_blatant_spam = $result->isBlatantSpam();
-		}
-		if ($is_spam)
-		{
-			$log_message = $is_blatant_spam ? 'AKISMET_LOG_BLATANT_SPAMMER_REGISTRATION' : 'AKISMET_LOG_SPAMMER_REGISTRATION';
-			$this->log->add(
-					'mod',
-					$user_id,
-					$this->user->ip,
-					$log_message,
-					false,
-					[$user_row['username']]
-			);
-			// TODO: Do more than log. We should probably add the user into a particular group,
-			// which we can lock down so they don't get to spam, for example.
+			// We get $vars = array('user_id', 'user_row', 'cp_data');
+			$user_id = $event['user_id']; // Can't use $this->user->data['user_id'] as there isn't an actual user logged in during registration, of course.
+			$user_row = $event['user_row'];
+			$params = [
+					'comment_type' => 'signup',
+					'user_ip' => $this->user->ip,
+					'user_agent' => $this->user->browser,
+					'comment_author' => $user_row['username'],
+					'comment_author_email' => $user_row['user_email']
+			];
+
+			$is_spam = false;
+			$is_blatant_spam = false;
+			$result = $this->akismet_comment_check($user_id, $params);
+			if ($result)
+			{
+				$is_spam = $result->isSpam();
+				$is_blatant_spam = $result->isBlatantSpam();
+			}
+			if ($is_spam)
+			{
+				$log_message = $is_blatant_spam ? 'AKISMET_LOG_BLATANT_SPAMMER_REGISTRATION' : 'AKISMET_LOG_SPAMMER_REGISTRATION';
+				$this->log->add(
+						'mod',
+						$user_id,
+						$this->user->ip,
+						$log_message,
+						false,
+						[$user_row['username']]
+				);
+				// TODO: Do more than log. We should probably add the user into a particular group,
+				// which we can lock down so they don't get to spam, for example.
+			}
 		}
 	}
 

@@ -100,6 +100,7 @@ class admin_controller
 				array(
 						'U_ACTION' => $this->u_action,
 						'GOTHICK_AKISMET_API_KEY' => $this->config['gothick_akismet_api_key'],
+						'GOTHICK_AKISMET_CHECK_REGISTRATIONS' => $this->config['gothick_akismet_check_registrations']
 				));
 
 	}
@@ -110,6 +111,7 @@ class admin_controller
 	protected function save_settings()
 	{
 		$this->config->set('gothick_akismet_api_key', $this->request->variable('gothick_akismet_api_key', ''));
+		$this->config->set('gothick_akismet_check_registrations', $this->request->variable('gothick_akismet_check_registrations', 0));
 	}
 	/**
 	* Set action
