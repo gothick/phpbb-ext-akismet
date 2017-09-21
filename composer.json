@@ -3,8 +3,8 @@
    "type": "phpbb-extension",
    "description": "Akismet Anti-Spam Extension for PHPBB",
    "homepage": "https://github.com/gothick/phpbb-ext-akismet",
-   "version": "0.2.1",
-   "time": "2017-09-13",
+   "version": "1.0.3",
+   "time": "2017-09-21",
    "license": "GPL-2.0",
    "authors": [{
       "name": "Matt Gibson",

@@ -10,17 +10,31 @@
 
 <form id="acp_board" method="post" action="{U_ACTION}">
 	<fieldset>
+		<legend>{L_ACP_AKISMET_AKISMET_API_KEY}</legend>
 		<dl>
 			<dt><label for="gothick_akismet_api_key">{L_ACP_AKISMET_API_KEY}</label></dt>
 			<dd><input type="text" name="gothick_akismet_api_key" id="gothick_akismet_api_key" value="{GOTHICK_AKISMET_API_KEY}" /></dd>
 		</dl>
-
-		<p class="submit-buttons">
-			<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
-			<input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
-		</p>
-
-		{S_FORM_TOKEN}
 	</fieldset>
+	<fieldset>
+		<legend>{L_ACP_AKISMET_GENERAL_SETITNGS}</legend>
+		<dl>
+			<dt>
+				<label for="gothick_akismet_check_registrations">{L_ACP_AKISMET_CHECK_REGISTRATIONS}{L_COLON}</label>
+				<br/>
+				<span>{L_ACP_AKISMET_CHECK_REGISTRATIONS_EXPLAIN}</span>
+			</dt>
+			<dd>
+				<label><input type="radio" class="radio" id="gothick_akismet_check_registrations" name="gothick_akismet_check_registrations" value="1"<!-- IF GOTHICK_AKISMET_CHECK_REGISTRATIONS --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" class="radio" name="gothick_akismet_check_registrations" value="0"<!-- IF not GOTHICK_AKISMET_CHECK_REGISTRATIONS --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+			</dd>
+		</dl>
+	</fieldset>
+	<fieldset class="submit-buttons">
+		<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
+		<input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
+	</fieldset>
+	{S_FORM_TOKEN}
+
 </form>
 <!-- INCLUDE overall_footer.html -->

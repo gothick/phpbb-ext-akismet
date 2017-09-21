@@ -23,14 +23,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class main_listener implements EventSubscriberInterface
 {
 
-	static public function getSubscribedEvents ()
-	{
-		return array(
-				'core.posting_modify_submit_post_before' => 'check_submitted_post',
-				'core.notification_manager_add_notifications' => 'add_akismet_details_to_notification'
-		);
-	}
-
 	/* @var \phpbb\user */
 	protected $user;
 
@@ -71,11 +63,8 @@ class main_listener implements EventSubscriberInterface
 	 * @param string $php_ext
 	 * @param string $root_path
 	 */
-	public function __construct (\phpbb\user $user,
-			\phpbb\request\request $request, \phpbb\config\config $config,
-			\phpbb\log\log_interface $log,
-			\phpbb\auth\auth $auth,
-			\Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container,
+	public function __construct (\phpbb\user $user, \phpbb\request\request $request, \phpbb\config\config $config,
+			\phpbb\log\log_interface $log, \phpbb\auth\auth $auth, \Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container,
 			$php_ext, $root_path)
 	{
 		$this->user = $user;
@@ -89,6 +78,15 @@ class main_listener implements EventSubscriberInterface
 		$this->request = $request;
 	}
 
+	static public function getSubscribedEvents ()
+	{
+		return array(
+				'core.posting_modify_submit_post_before' => 'check_submitted_post',
+				'core.notification_manager_add_notifications' => 'add_akismet_details_to_notification',
+				'core.user_add_after' => 'check_new_user'
+		);
+	}
+
 	/**
 	 * The main event.
 	 * When a post is submitted, we do several checks: is the
@@ -96,14 +94,13 @@ class main_listener implements EventSubscriberInterface
 	 * isSpam check, etc. On a failure we mark the post as not approved and
 	 * log and notify.
 	 *
-	 * @param unknown $event
+	 * @param \phpbb\event\data $event
 	 */
 	public function check_submitted_post ($event)
 	{
 		// Skip the Akismet check for anyone who's a moderator or an administrator. If your
 		// admins and moderators are posting spam, you've got bigger problems...
-		if (! ($this->auth->acl_getf_global('m_') ||
-				$this->auth->acl_getf_global('a_')))
+		if (! ($this->auth->acl_getf_global('m_') || $this->auth->acl_getf_global('a_')))
 		{
 			$data = $event['data'];
 			if ($this->is_spam($data))
@@ -117,8 +114,7 @@ class main_listener implements EventSubscriberInterface
 				$event['data'] = $data;
 
 				// Note our action in the moderation log
-				if ($event['mode'] == 'post' || ($event['mode'] == 'edit' &&
-						$data['topic_first_post_id'] == $data['post_id']))
+				if ($event['mode'] == 'post' || ($event['mode'] == 'edit' && $data['topic_first_post_id'] == $data['post_id']))
 				{
 					$log_message = 'AKISMET_LOG_TOPIC_DISAPPROVED';
 				}
@@ -127,12 +123,7 @@ class main_listener implements EventSubscriberInterface
 					$log_message = 'AKISMET_LOG_POST_DISAPPROVED';
 				}
 
-				$this->log->add(
-						'mod',
-						$this->user->data['user_id'],
-						$this->user->ip,
-						$log_message,
-						false,
+				$this->log->add('mod', $this->user->data['user_id'], $this->user->ip, $log_message, false,
 						array(
 								$data['topic_title'],
 								$this->user->data['username']
@@ -142,12 +133,57 @@ class main_listener implements EventSubscriberInterface
 	}
 
 	/**
-	 * Check for spam using our handy client. I hear it was written by
-	 * a talented and ruggedly-handsome programmer.
+	 * Check a new user registration for spamminess.
 	 *
-	 * @param array $data Data array from event that triggered us.
+	 * @param \phpbb\event\data $event
 	 */
-	private function is_spam($data)
+	public function check_new_user ($event)
+	{
+		if ($this->config['gothick_akismet_check_registrations'])
+		{
+			// We get $vars = array('user_id', 'user_row', 'cp_data');
+			$user_id = $event['user_id']; // Can't use $this->user->data['user_id'] as there isn't an actual user logged in during registration, of course.
+			$user_row = $event['user_row'];
+			$params = [
+					'comment_type' => 'signup',
+					'user_ip' => $this->user->ip,
+					'user_agent' => $this->user->browser,
+					'comment_author' => $user_row['username'],
+					'comment_author_email' => $user_row['user_email']
+			];
+
+			$is_spam = false;
+			$is_blatant_spam = false;
+			$result = $this->akismet_comment_check($user_id, $params);
+			if ($result)
+			{
+				$is_spam = $result->isSpam();
+				$is_blatant_spam = $result->isBlatantSpam();
+			}
+			if ($is_spam)
+			{
+				$log_message = $is_blatant_spam ? 'AKISMET_LOG_BLATANT_SPAMMER_REGISTRATION' : 'AKISMET_LOG_SPAMMER_REGISTRATION';
+				$this->log->add(
+						'mod',
+						$user_id,
+						$this->user->ip,
+						$log_message,
+						false,
+						[$user_row['username']]
+				);
+				// TODO: Do more than log. We should probably add the user into a particular group,
+				// which we can lock down so they don't get to spam, for example.
+			}
+		}
+	}
+
+	/**
+	 * Check a comment for spam.
+	 *
+	 * @param array $data
+	 *        	Data array from event that triggered us.
+	 */
+	private function is_spam ($data)
 	{
 		$is_spam = false;
 
@@ -168,117 +204,129 @@ class main_listener implements EventSubscriberInterface
 		$params['comment_author_url'] = $url;
 
 		// URL of topic
-		$params['permalink'] = generate_board_url() . '/' . append_sid(
-				"viewtopic.{$this->php_ext}",
-				"t={$data['topic_id']}",
-				true,
-				''
-		);
+		$params['permalink'] = generate_board_url() . '/' . append_sid("viewtopic.{$this->php_ext}", "t={$data['topic_id']}", true, '');
 		// 'forum-post' recommended for type:
 		// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
 		$params['comment_type'] = 'forum-post';
 
-		/* @var $akismet \Gothick\AkismetClient\Client */
-		$akismet = $this->phpbb_container->get(
-			'gothick.akismet.client',
-			ContainerInterface::NULL_ON_INVALID_REFERENCE
-		);
-
-		// We may not have got an Akismet client back from the container. It'll quietly fail if
-		// the API key isn't configured, for example.
-		if (isset($akismet))
+		$result = $this->akismet_comment_check($this->user->data['user_id'], $params);
+		// We either get false back on unexpected failure, or a CommentCheckResult object. If we got
+		// false back, chances are good that we've already added the details to the phpBB error log,
+		// so here we just quietly ignore the problem.
+		if ($result instanceof \Gothick\AkismetClient\Result\CommentCheckResult)
 		{
-			// We can't just pass $_SERVER in to our Akismet client as phpBB turns off super globals (which is,
-			// of course, fair enough.) Interrogate our request object instead, grabbing as many relevant
-			// things as we can, excluding anything that might leak anything sensitive to Akismet (bear in
-			// mind we're already throwing all the user details and the entire contents of their comment
-			// at Akismet, of course.)
+			// TODO: Also available from our result object is isBlatantSpam, indicating something
+			// so obviously spammy that it can be silently discarded without human intervention.
+			// Might want to do something more extreme with those.
+			$result = $result->isSpam();
+		}
 
-			// https://akismet.com/development/api/#comment-check
-			// "This data is highly useful to Akismet. How the submitted content interacts with the server can
-			// be very telling, so please include as much of it as possible."
-			$server_vars = array(
-					// TODO: vet these and consider adding more after looking at what's actually in the $_SERVER
-					// variable for a typical request to our fairly typical server.
-					'AUTH_TYPE',
-					'GATEWAY_INTERFACE',
-					'HTTPS',
-					'HTTP_ACCEPT',
-					'HTTP_ACCEPT_CHARSET',
-					'HTTP_ACCEPT_ENCODING',
-					'HTTP_ACCEPT_LANGUAGE',
-					'HTTP_CONNECTION',
-					'HTTP_HOST',
-					'HTTP_REFERER',
-					'HTTP_USER_AGENT',
-					'ORIG_PATH_INFO',
-					'PATH_INFO',
-					'PATH_TRANSLATED',
-					'PHP_AUTH_DIGEST',
-					'PHP_AUTH_PW',
-					'PHP_SELF',
-					'PHP_AUTH_USER',
-					'QUERY_STRING',
-					'REDIRECT_REMOTE_USER',
-					'REMOTE_ADDR',
-					'REMOTE_HOST',
-					'REMOTE_PORT',
-					'REMOTE_USER',
-					'REQUEST_METHOD',
-					'REQUEST_SCHEME',
-					'REQUEST_TIME',
-					'REQUEST_TIME_FLOAT',
-					'REQUEST_URI',
-					'SCRIPT_FILENAME',
-					'SCRIPT_NAME',
-					'SCRIPT_URI',
-					'SCRIPT_URL',
-					'SERVER_ADDR',
-					'SERVER_NAME',
-					'SERVER_PORT',
-					'SERVER_PROTOCOL',
-					'SERVER_SIGNATURE',
-					'SERVER_SOFTWARE',
-					'USER'
-			);
+		return $result;
+	}
 
-			// Try to recreate $_SERVER.
-			$server = array();
-			foreach ($server_vars as $var)
-			{
-				$value = $this->request->server($var, null);
-				if ($value != null)
-				{
-					$server[$var] = $value;
-				}
-			}
+	/**
+	 * Call Akismet's comment-check method using our handy client.
+	 * I hear it was written by a talented and ruggedly-handsome programmer.
+	 * @param int $user_id User ID of the commenter (or newly-registered potential commenter)
+	 * @param array $params Akismet parameters
+	 * @throws \Exception
+	 * @return boolean|\Gothick\AkismetClient\Result\CommentCheckResult false on failure or a result oject otherwise.
+	 */
+	protected function akismet_comment_check ($user_id, $params)
+	{
+		$result = false;
+		/** @var $akismet \Gothick\AkismetClient\Client */
+		$akismet = $this->phpbb_container->get('gothick.akismet.client', ContainerInterface::NULL_ON_INVALID_REFERENCE);
 
+		if (! $akismet)
+		{
+			$this->log->add('critical', $user_id, $this->user->ip, 'AKISMET_LOG_NO_KEY_CONFIGURED', false);
+		}
+		else
+		{
 			try
 			{
-				$result = $akismet->commentCheck(
-						$params,
-						$server);
+				// We can't just pass $_SERVER in to our Akismet client as phpBB turns off super globals (which is,
+				// of course, fair enough.) Interrogate our request object instead, grabbing as many relevant
+				// things as we can, excluding anything that might leak anything sensitive to Akismet (bear in
+				// mind we're already throwing all the user details and the entire contents of their comment
+				// at Akismet, of course.)
 
-				$is_spam = $result->isSpam();
-				// TODO: Also available from our result object is isBlatantSpam, indicating something
-				// so obviously spammy that it can be silently discarded without human intervention.
-				// Might want to do something more extreme with those.
+				// https://akismet.com/development/api/#comment-check
+				// "This data is highly useful to Akismet. How the submitted content interacts with the server can
+				// be very telling, so please include as much of it as possible."
+				$server_vars = array(
+						// TODO: Use a blacklist for sensitive server-related stuff, rather than a whitelist. It'll
+						// be more friendly for other people's setups, and the code will be shorter.
+						'AUTH_TYPE',
+						'GATEWAY_INTERFACE',
+						'HTTPS',
+						'HTTP_ACCEPT',
+						'HTTP_ACCEPT_CHARSET',
+						'HTTP_ACCEPT_ENCODING',
+						'HTTP_ACCEPT_LANGUAGE',
+						'HTTP_CONNECTION',
+						'HTTP_HOST',
+						'HTTP_REFERER',
+						'HTTP_USER_AGENT',
+						'ORIG_PATH_INFO',
+						'PATH_INFO',
+						'PATH_TRANSLATED',
+						'PHP_AUTH_DIGEST',
+						'PHP_AUTH_PW',
+						'PHP_SELF',
+						'PHP_AUTH_USER',
+						'QUERY_STRING',
+						'REDIRECT_REMOTE_USER',
+						'REMOTE_ADDR',
+						'REMOTE_HOST',
+						'REMOTE_PORT',
+						'REMOTE_USER',
+						'REQUEST_METHOD',
+						'REQUEST_SCHEME',
+						'REQUEST_TIME',
+						'REQUEST_TIME_FLOAT',
+						'REQUEST_URI',
+						'SCRIPT_FILENAME',
+						'SCRIPT_NAME',
+						'SCRIPT_URI',
+						'SCRIPT_URL',
+						'SERVER_ADDR',
+						'SERVER_NAME',
+						'SERVER_PORT',
+						'SERVER_PROTOCOL',
+						'SERVER_SIGNATURE',
+						'SERVER_SOFTWARE',
+						'USER'
+				);
+
+				// Try to recreate $_SERVER.
+				$server = array();
+				foreach ($server_vars as $var)
+				{
+					$value = $this->request->server($var, null);
+					if ($value != null)
+					{
+						$server[$var] = $value;
+					}
+				}
+
+				$result = $akismet->commentCheck($params, $server);
 			}
 			catch (\Exception $e)
 			{
-				// If Akismet's down, or there's some other problem like that,
-				// we'll give the post the benefit of the doubt, but log a
-				// warning.
-				$this->log->add('critical',
-						$this->user->data['user_id'],
+				$this->log->add(
+						'critical',
+						$user_id,
 						$this->user->ip,
-						'AKISMET_LOG_CALL_FAILED', false,
-						array(
-								$e->getMessage()
-						));
+						'AKISMET_LOG_CALL_FAILED',
+						false,
+						[$e->getMessage()]
+				);
+				throw $e;
 			}
 		}
-		return $is_spam;
+		return $result;
 	}
 
 	/**
@@ -287,12 +335,12 @@ class main_listener implements EventSubscriberInterface
 	 * for queueing was an Akismet spam detection rather than any other
 	 * reason.
 	 *
-	 * @param unknown $event
+	 * @param \phpbb\event\data $event
 	 */
 	public function add_akismet_details_to_notification ($event)
 	{
 		if ($event['notification_type_name'] == 'notification.type.post_in_queue' ||
-			$event['notification_type_name'] == 'notification.type.topic_in_queue')
+				 $event['notification_type_name'] == 'notification.type.topic_in_queue')
 		{
 			$data = $event['data'];
 			if (isset($data['gothick_akismet_unapproved']))
