@@ -218,10 +218,10 @@ class main_listener implements EventSubscriberInterface
 			// TODO: Also available from our result object is isBlatantSpam, indicating something
 			// so obviously spammy that it can be silently discarded without human intervention.
 			// Might want to do something more extreme with those.
-			$result = $result->isSpam();
+			$is_spam = $result->isSpam();
 		}
 
-		return $result;
+		return $is_spam;
 	}
 
 	/**
