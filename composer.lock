@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "0b382e0a625ac279567c0d283230106d",
-    "content-hash": "5a556d1d52f0ce2087bf4466bcdcf3d4",
+    "hash": "d310f892f195ebd3dc2553911b78f4de",
+    "content-hash": "fa0516f36f3a8351c50a0373f2c102cf",
     "packages": [
         {
             "name": "composer/installers",
@@ -130,12 +130,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/gothick/php-akismet.git",
-                "reference": "5a5cfdeddc98a7b23d36a32116c9c4147240efa0"
+                "reference": "e1872a75f0ce4549822c0f7e3edd0ed29224ad02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gothick/php-akismet/zipball/5a5cfdeddc98a7b23d36a32116c9c4147240efa0",
-                "reference": "5a5cfdeddc98a7b23d36a32116c9c4147240efa0",
+                "url": "https://api.github.com/repos/gothick/php-akismet/zipball/e1872a75f0ce4549822c0f7e3edd0ed29224ad02",
+                "reference": "e1872a75f0ce4549822c0f7e3edd0ed29224ad02",
                 "shasum": ""
             },
             "require": {
@@ -170,10 +170,10 @@
             "description": "Akismet PHP Client",
             "homepage": "https://github.com/gothick/phpbb-akismet",
             "support": {
-                "source": "https://github.com/gothick/php-akismet/tree/master",
+                "source": "https://github.com/gothick/php-akismet/tree/v1.0.0",
                 "issues": "https://github.com/gothick/php-akismet/issues"
             },
-            "time": "2017-09-09 21:52:09"
+            "time": "2017-09-21 08:39:13"
         },
         {
             "name": "guzzlehttp/guzzle",
