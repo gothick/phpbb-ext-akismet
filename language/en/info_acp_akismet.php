@@ -29,8 +29,7 @@ $lang = array_merge($lang,
 				'AKISMET_LOG_NO_KEY_CONFIGURED' => '<strong>No API key configured for Gothick Akismet</strong><br />» Check the Extension’s settings',
 				'AKISMET_LOG_POST_DISAPPROVED' => '<strong>Disapproved post “%1$s” written by “%2$s” for the following reason</strong><br />» Post detected as spam by Akismet',
 				'AKISMET_LOG_TOPIC_DISAPPROVED' => '<strong>Disapproved topic “%1$s” written by “%2$s” for the following reason</strong><br />» Topic detected as spam by Akismet',
-				'AKISMET_LOG_SPAMMER_REGISTRATION' => '<strong>User %1$s: Spammy registration detected by Akismet</strong>',
-				'AKISMET_LOG_BLATANT_SPAMMER_REGISTRATION' => '<strong>User %1$s: Blatantly spammy registration detected by Akismet</strong>',
-				// TODO remove this once we're done testing.
-				'AKISMET_LOG_NON_SPAMMER_REGISTRATION' => '<strong>User %1$s: New registration passed Akismet check</strong>',
+				'AKISMET_LOG_SPAMMER_REGISTRATION' => '<strong>User %s: Spammy registration detected by Akismet</strong>',
+				'AKISMET_LOG_BLATANT_SPAMMER_REGISTRATION' => '<strong>User %s: Blatantly spammy registration detected by Akismet</strong>',
+				'AKISMET_LOG_SPAMMER_GROUP_REMOVED' => '<strong>Akismet: Group %s was deleted</strong><br />Akismet will no longer add new spammy registrations to a group'
 		));

@@ -76,6 +76,11 @@ class main_listener implements EventSubscriberInterface
 		$this->root_path = $root_path;
 		// To allow super-globals when we call our third-party Akismet library.
 		$this->request = $request;
+
+		if (!function_exists('group_user_add'))
+		{
+			include $this->phpbb_root_path . 'includes/functions_user.' . $this->php_ext;
+		}
 	}
 
 	static public function getSubscribedEvents ()
@@ -83,7 +88,8 @@ class main_listener implements EventSubscriberInterface
 		return array(
 				'core.posting_modify_submit_post_before' => 'check_submitted_post',
 				'core.notification_manager_add_notifications' => 'add_akismet_details_to_notification',
-				'core.user_add_after' => 'check_new_user'
+				'core.user_add_after' => 'check_new_user',
+				'core.delete_group_after' => 'group_deleted'
 		);
 	}
 
@@ -171,8 +177,11 @@ class main_listener implements EventSubscriberInterface
 						false,
 						[$user_row['username']]
 				);
-				// TODO: Do more than log. We should probably add the user into a particular group,
-				// which we can lock down so they don't get to spam, for example.
+
+				if ($group_id = $this->config['gothick_akismet_add_registering_spammers_to_group'])
+				{
+					group_user_add($group_id, $user_id);
+				}
 			}
 		}
 	}
@@ -348,6 +357,30 @@ class main_listener implements EventSubscriberInterface
 				$event['notification_type_name'] = 'gothick.akismet.' . $event['notification_type_name'];
 			}
 			$event['data'] = $data;
+		}
+	}
+
+	/**
+	 * If someone deletes a group we're configured to add users to, update
+	 * our configuration. Should avoid problems.
+	 *
+	 * @param \phpbb\event\data $event
+	 */
+	public function group_deleted ($event)
+	{
+		$group_id = $event['group_id'];
+		if ($group_id == $this->config['gothick_akismet_add_registering_spammers_to_group']) {
+
+			$this->config->set('gothick_akismet_add_registering_spammers_to_group', 0);
+
+			$this->log->add(
+					'mod',
+					$this->user->data['user_id'],
+					$this->user->ip,
+					'AKISMET_LOG_SPAMMER_GROUP_REMOVED',
+					false,
+					[ $event['group_name'] ]
+			);
 		}
 	}
 }

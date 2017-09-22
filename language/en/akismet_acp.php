@@ -31,5 +31,8 @@ $lang = array_merge($lang,
 				'ACP_AKISMET_API_KEY' => 'API Key',
 				'ACP_AKISMET_GENERAL_SETITNGS' => 'General Settings',
 				'ACP_AKISMET_CHECK_REGISTRATIONS' => 'Check new user registrations with Akismet',
-				'ACP_AKISMET_CHECK_REGISTRATIONS_EXPLAIN' => 'If you choose "yes", Akismet will try to detect likely spammers as soon as they register, before they\'ve posted any replies or new topics.'
+				'ACP_AKISMET_CHECK_REGISTRATIONS_EXPLAIN' => 'If you choose "yes", Akismet will try to detect likely spammers as soon as they register, before they\'ve posted any replies or new topics.',
+				'ACP_AKISMET_DONT_ADD_REGISTERING_SPAMMERS_TO_GROUP' => 'Don\'t add registering spammers to additional groups',
+				'ACP_AKISMET_ADD_DETECTED_SPAMMERS_TO_GROUP' => 'Add registering spammers to a group',
+				'ACP_AKISMET_ADD_DETECTED_SPAMMERS_TO_GROUP_EXPLAIN' => 'If Akismet detects a "spammy" registration from a new user, add the user to the selected group. You can use this to restrict their posting privileges, etc. until you\'ve investigated them.'
 		));

@@ -99,10 +99,40 @@ class admin_controller
 		$this->template->assign_vars(
 				array(
 						'U_ACTION' => $this->u_action,
-						'GOTHICK_AKISMET_API_KEY' => $this->config['gothick_akismet_api_key'],
-						'GOTHICK_AKISMET_CHECK_REGISTRATIONS' => $this->config['gothick_akismet_check_registrations']
+						'API_KEY' => $this->config['gothick_akismet_api_key'],
+						'S_CHECK_REGISTRATIONS' => $this->config['gothick_akismet_check_registrations'],
+						'S_GROUP_LIST' => $this->group_select_options($this->config['gothick_akismet_add_registering_spammers_to_group'])
 				));
 
+	}
+
+	protected function group_select_options($selected_group_id = 0)
+	{
+		// Adapted from global function group_select_options in core file functions_admin.php and adapted.
+		global $db, $config, $phpbb_container;
+
+		/** @var \phpbb\group\helper $group_helper */
+		$group_helper = $phpbb_container->get('group_helper');
+
+		$sql_coppa = (!$config['coppa_enable']) ? " WHERE group_name <> 'REGISTERED_COPPA'" : '';
+
+		$sql = 'SELECT group_id, group_name, group_type
+		FROM ' . GROUPS_TABLE . "
+		$sql_coppa
+		ORDER BY group_type DESC, group_name ASC";
+
+		$result = $db->sql_query($sql);
+
+		$s_group_options = '';
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$selected = ($row['group_id'] == $selected_group_id) ? ' selected="selected"' : '';
+			$s_group_options .= '<option' . (($row['group_type'] == GROUP_SPECIAL) ? ' class="sep"' : '') . ' value="' . $row['group_id'] . '"' . $selected . '>' . $group_helper->get_name($row['group_name']) . '</option>';
+		}
+		$db->sql_freeresult($result);
+
+		return $s_group_options;
 	}
 
 	/**
@@ -110,8 +140,9 @@ class admin_controller
 	*/
 	protected function save_settings()
 	{
-		$this->config->set('gothick_akismet_api_key', $this->request->variable('gothick_akismet_api_key', ''));
-		$this->config->set('gothick_akismet_check_registrations', $this->request->variable('gothick_akismet_check_registrations', 0));
+		$this->config->set('gothick_akismet_api_key', $this->request->variable('api_key', ''));
+		$this->config->set('gothick_akismet_check_registrations', $this->request->variable('check_registrations', 0));
+		$this->config->set('gothick_akismet_add_registering_spammers_to_group', $this->request->variable('add_registering_spammers_to_group', 0));
 	}
 	/**
 	* Set action

@@ -12,8 +12,8 @@
 	<fieldset>
 		<legend>{L_ACP_AKISMET_AKISMET_API_KEY}</legend>
 		<dl>
-			<dt><label for="gothick_akismet_api_key">{L_ACP_AKISMET_API_KEY}</label></dt>
-			<dd><input type="text" name="gothick_akismet_api_key" id="gothick_akismet_api_key" value="{GOTHICK_AKISMET_API_KEY}" /></dd>
+			<dt><label for="api_key">{L_ACP_AKISMET_API_KEY}</label></dt>
+			<dd><input type="text" name="api_key" id="api_key" value="{API_KEY}" /></dd>
 		</dl>
 	</fieldset>
 	<fieldset>
@@ -25,8 +25,23 @@
 				<span>{L_ACP_AKISMET_CHECK_REGISTRATIONS_EXPLAIN}</span>
 			</dt>
 			<dd>
-				<label><input type="radio" class="radio" id="gothick_akismet_check_registrations" name="gothick_akismet_check_registrations" value="1"<!-- IF GOTHICK_AKISMET_CHECK_REGISTRATIONS --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
-				<label><input type="radio" class="radio" name="gothick_akismet_check_registrations" value="0"<!-- IF not GOTHICK_AKISMET_CHECK_REGISTRATIONS --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<label><input type="radio" class="radio" id="check_registrations" name="check_registrations" value="1"<!-- IF S_CHECK_REGISTRATIONS --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" class="radio" name="check_registrations" value="0"<!-- IF not S_CHECK_REGISTRATIONS --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+			</dd>
+		</dl>
+		<dl>
+			<dt>
+				<label for="gothick_akismet_check_registrations">{L_ACP_AKISMET_ADD_DETECTED_SPAMMERS_TO_GROUP}{L_COLON}</label>
+				<br/>
+				<span>{L_ACP_AKISMET_ADD_DETECTED_SPAMMERS_TO_GROUP_EXPLAIN}</span>
+			</dt>
+			<dd>
+				<dd>
+					<select name="add_registering_spammers_to_group" id="add_registering_spammers_to_group">
+						<option value="0">{L_ACP_AKISMET_DONT_ADD_REGISTERING_SPAMMERS_TO_GROUP}</option>
+						{S_GROUP_LIST}
+					</select>
+				</dd>
 			</dd>
 		</dl>
 	</fieldset>
