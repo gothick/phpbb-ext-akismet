@@ -24,7 +24,6 @@
       "gothick/php-akismet": "dev-master"
    },
    "require-dev": {
-      "phpbb/epv": "dev-master"
    },
    "extra": {
       "display-name": "Akismet Anti-Spam Extension",
