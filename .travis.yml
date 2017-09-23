@@ -38,6 +38,7 @@ branches:
   only:
     - master
     - /^\d+(\.\d+)?\.x$/
+    - registration
 
 install:
   - composer install --no-interaction --prefer-source
