@@ -31,13 +31,14 @@
                 <directory suffix=".php">./language/</directory>
                 <directory suffix=".php">./migrations/</directory>
                 <directory suffix=".php">./tests/</directory>
+                <directory suffix=".php">./vendor/</directory>
             </exclude>
         </whitelist>
     </filter>
     <logging>
-        <!--<log type="coverage-html" target="/tmp/report" lowUpperBound="35" highLowerBound="70"/>-->
-        <!--<log type="coverage-clover" target="/tmp/coverage-clover.xml"/>-->
-        <!--<log type="testdox-html" target="/tmp/testdox.html"/>-->
+        <log type="coverage-html" target="./coverage/report" lowUpperBound="35" highLowerBound="70"/>
+        <log type="coverage-clover" target="./coverage/coverage-clover.xml"/>
+        <log type="testdox-html" target="./coverage/testdox.html"/>
     </logging>
     
 </phpunit>
