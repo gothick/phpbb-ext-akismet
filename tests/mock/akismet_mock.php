@@ -17,16 +17,18 @@ namespace gothick\akismet\tests\mock;
  */
 class akismet_mock extends \Gothick\AkismetClient\Client
 {
-	public function __construct()
+	protected $blatant;
+	public function __construct($blatant = false)
 	{
+		$this->blatant = $blatant;
 	}
 
 	public function commentCheck($params = array(), $server_params = array())
 	{
 		if ($params['comment_author'] == 'viagra-test-123')
 		{
-			return new akismet_client_check_result_mock(true);
+			return new akismet_client_check_result_mock(true, $blatant);
 		}
-		return new akismet_client_check_result_mock(false);
+		return new akismet_client_check_result_mock(false, false);
 	}
 }

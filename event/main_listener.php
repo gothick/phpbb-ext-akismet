@@ -46,7 +46,7 @@ class main_listener implements EventSubscriberInterface
 
 	protected $php_ext;
 
-	protected $root_path;
+	protected $phpbb_root_path;
 
 	/**
 	 * Constructor
@@ -61,11 +61,11 @@ class main_listener implements EventSubscriberInterface
 	 * @param \phpbb\log\log_interface $log
 	 * @param \phpbb\auth\auth $auth
 	 * @param string $php_ext
-	 * @param string $root_path
+	 * @param string $phpbb_root_path
 	 */
 	public function __construct (\phpbb\user $user, \phpbb\request\request $request, \phpbb\config\config $config,
 			\phpbb\log\log_interface $log, \phpbb\auth\auth $auth, \Symfony\Component\DependencyInjection\ContainerInterface $phpbb_container,
-			$php_ext, $root_path)
+			$php_ext, $phpbb_root_path)
 	{
 		$this->user = $user;
 		$this->config = $config;
@@ -73,8 +73,7 @@ class main_listener implements EventSubscriberInterface
 		$this->auth = $auth;
 		$this->phpbb_container = $phpbb_container;
 		$this->php_ext = $php_ext;
-		$this->root_path = $root_path;
-		// To allow super-globals when we call our third-party Akismet library.
+		$this->phpbb_root_path = $phpbb_root_path;
 		$this->request = $request;
 
 		if (!function_exists('group_user_add'))
@@ -180,10 +179,20 @@ class main_listener implements EventSubscriberInterface
 
 				if ($group_id = $this->config['gothick_akismet_add_registering_spammers_to_group'])
 				{
-					group_user_add($group_id, $user_id);
+					$this->group_user_add($group_id, $user_id);
 				}
 			}
 		}
+	}
+
+	/**
+	 * Separated out so we can mock this global function more easily in our unit testing.
+	 * @param int $group_id
+	 * @param int $user_id
+	 */
+	public function group_user_add($group_id, $user_id)
+	{
+		group_user_add($group_id, $user_id);
 	}
 
 	/**
