@@ -33,10 +33,36 @@ function generate_board_url ($without_script_path = false)
 	return 'http://phpbb.test';
 }
 
-class main_test extends \phpbb_test_case
+class listener_test extends \phpbb_test_case
 {
+	// TODO: Test what happens if we don't put an Akismet object in the container. It
+	// should fail quietly and just not mark anything as spam.
 
-	public function handle_data ()
+	protected $container;
+
+	public function setUp()
+	{
+		$this->container = new \phpbb_mock_container_builder();
+		// $akismet_mock = new \gothick\akismet\tests\mock\akismet_mock();
+		// $phpbb_container->set('gothick.akismet.client', $akismet_mock);
+	}
+
+	protected function get_listener($user)
+	{
+		return new \gothick\akismet\event\main_listener(
+				$user,
+				$this->getMock('\phpbb\request\request'),
+				new \phpbb\config\config([]),
+				new \phpbb\log\dummy(),
+				$this->getMock('\phpbb\auth\auth'),
+				$this->container,
+				'.php', // $php_ext,
+				'./' // $root_path;
+		);
+	}
+
+
+	public function post_data ()
 	{
 		return array(
 				array(
@@ -52,31 +78,15 @@ class main_test extends \phpbb_test_case
 		);
 	}
 
-	// TODO: Test what happens if we don't put an Akismet object in the container. It
-	// should fail quietly and just not mark anything as spam.
-
 	/**
-	 * @dataProvider handle_data
+	 * @dataProvider post_data
 	 */
 	public function test_post_check ($username, $message, $should_pass)
 	{
-		$phpbb_container = new \phpbb_mock_container_builder();
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username));
 		$akismet_mock = new \gothick\akismet\tests\mock\akismet_mock();
-		$phpbb_container->set('gothick.akismet.client',
-				$akismet_mock);
-
+		$this->container->set('gothick.akismet.client', $akismet_mock);
 		$request = $this->getMock('\phpbb\request\request');
-
-		$listener = new \gothick\akismet\event\main_listener(
-				new \gothick\akismet\tests\mock\user($username),
-				$request,
-				new \phpbb\config\config(array(/*'gothick_akismet_user_id' => 1 */)),
-				new \phpbb\log\dummy(),
-				$this->getMock('\phpbb\auth\auth'),
-				$phpbb_container,
-				'.php', // $php_ext,
-				'./' // $root_path;
-			);
 
 		$data = array(
 				'data' => array(
@@ -95,6 +105,16 @@ class main_test extends \phpbb_test_case
 		{
 			$this->assertTrue(isset($event['data']['force_approved_state']));
 			$this->assertEquals($event['data']['force_approved_state'], ITEM_UNAPPROVED);
+		}
+	}
+	public function test_getSubscribedEvents ()
+	{
+		$function_map = \gothick\akismet\event\main_listener::getSubscribedEvents();
+		$this->assertGreaterThan(0, count($function_map), 'No events subscribed');
+		$reflection = new \ReflectionClass(\gothick\akismet\event\main_listener::class);
+		foreach ($function_map as $function_name)
+		{
+			$this->assertTrue($reflection->hasMethod($function_name), 'Event mapped to non-existent function: ' . $function_name);
 		}
 	}
 }
