@@ -70,7 +70,7 @@ class main_test extends \phpbb_test_case
 		$listener = new \gothick\akismet\event\main_listener(
 				new \gothick\akismet\tests\mock\user($username),
 				$request,
-				new \phpbb\config\config(array('gothick_akismet_user_id' => 1)),
+				new \phpbb\config\config(array(/*'gothick_akismet_user_id' => 1 */)),
 				new \phpbb\log\dummy(),
 				$this->getMock('\phpbb\auth\auth'),
 				$phpbb_container,
