@@ -15,8 +15,7 @@ namespace gothick\akismet\event;
  * Hide the global append_sid method with one that does rather less, so we don't
  * have to mock up a whole bunch of other stuff.
  */
-function append_sid ($url, $params = false, $is_amp = true, $session_id = false,
-		$is_route = false)
+function append_sid ($url, $params = false, $is_amp = true, $session_id = false, $is_route = false)
 {
 	$url_delim = (strpos($url, '?') === false) ? '?' : (($is_amp) ? '&amp;' : '&');
 	return $url . ($params !== false ? $url_delim . $params : '');
@@ -32,42 +31,40 @@ function generate_board_url ($without_script_path = false)
 
 class listener_test extends \phpbb_test_case
 {
+
 	// TODO: Test what happens if we don't put an Akismet object in the container. It
 	// should fail quietly and just not mark anything as spam.
-
 	protected $container;
 
-	public function setUp()
+	public function setUp ()
 	{
 		$this->container = new \phpbb_mock_container_builder();
 	}
 
-	protected function get_listener($user, $config = array(), $log = null)
+	protected function get_listener ($user, $config = array(), $log = null)
 	{
-		if (!$log)
+		if (! $log)
 		{
 			$log = new \phpbb\log\dummy();
 		}
-		return $this
-			->getMockBuilder(\gothick\akismet\event\main_listener::class)
+		return $this->getMockBuilder(\gothick\akismet\event\main_listener::class)
 			->setConstructorArgs(
-					[
-							$user,
-							$this->getMock('\phpbb\request\request'),
-							new \phpbb\config\config($config),
-							$log,
-							$this->getMock('\phpbb\auth\auth'),
-							$this->container,
-							'php', // $php_ext,
-							__DIR__ . '/../../../../../' // $root_path;
-					]
-					)
-			->setMethods(['group_user_add'])
+				[
+						$user,
+						$this->getMock('\phpbb\request\request'),
+						new \phpbb\config\config($config),
+						$log,
+						$this->getMock('\phpbb\auth\auth'),
+						$this->container,
+						'php', // $php_ext,
+						__DIR__ . '/../../../../../' // $root_path;
+				])
+			->setMethods([
+				'group_user_add'
+		])
 			->getMock();
 		//.return new \gothick\akismet\event\main_listener(
-
 	}
-
 
 	public function post_data ()
 	{
@@ -99,11 +96,11 @@ class listener_test extends \phpbb_test_case
 	public function test_post_check ($username, $message, $mode, $should_pass)
 	{
 		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
-		if (!$should_pass)
+		if (! $should_pass)
 		{
 			$log->expects($this->once())
-			->method('add')
-			->with($this->equalTo('mod'));
+				->method('add')
+				->with($this->equalTo('mod'));
 		}
 
 		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), [], $log);
@@ -114,7 +111,7 @@ class listener_test extends \phpbb_test_case
 				'mode' => $mode,
 				'data' => array(
 						'message' => $message,
-						'topic_id' => 123,
+						'topic_id' => 123
 				)
 		);
 		$event = new \phpbb\event\data($data);
@@ -151,7 +148,7 @@ class listener_test extends \phpbb_test_case
 				'mode' => $mode,
 				'data' => array(
 						'message' => $message,
-						'topic_id' => 123,
+						'topic_id' => 123
 				)
 		);
 		$event = new \phpbb\event\data($data);
@@ -166,31 +163,21 @@ class listener_test extends \phpbb_test_case
 		return array(
 				array(
 						[
-							'gothick_akismet_check_registrations' => true
+								'gothick_akismet_check_registrations' => true
 						], // Config
 						'viagra-test-123', // User name being registered
 						false, // "Blatant" spammer
 						false, // Should it pass the spammy test? (No, they're trying to sell viagra!)
-						false  // Should it be added to the spammers group? (No, as we've not set that config option)
+						false // Should it be added to the spammers group? (No, as we've not set that config option)
 				),
 				array(
 						[
-							'gothick_akismet_check_registrations' => true
+								'gothick_akismet_check_registrations' => true
 						], // Config
 						'viagra-test-123', // User name being registered
-						true,  // "Blatant" spammer
+						true, // "Blatant" spammer
 						false, // Should it pass the spammy test? (No, they're *blatantly* trying to sell viagra!)
-						false  // Should it be added to the spammers group? (No, as we've not set that config option.)
-				),
-				array(
-						[
-							'gothick_akismet_check_registrations' => true,
-							'gothick_akismet_add_registering_spammers_to_group' => 234
-						], // Config
-						'viagra-test-123', // User name being registered
-						false, // "Blatant" spammer
-						false, // Should it pass the spammy test? (No, they're trying to sell viagra!)
-						true   // Should it be added to the spammers group? (Yes, as we've set that config option)
+						false // Should it be added to the spammers group? (No, as we've not set that config option.)
 				),
 				array(
 						[
@@ -198,20 +185,31 @@ class listener_test extends \phpbb_test_case
 								'gothick_akismet_add_registering_spammers_to_group' => 234
 						], // Config
 						'viagra-test-123', // User name being registered
-						true,  // "Blatant" spammer
-						false, // Should it pass the spammy test? (No, they're *blatantly* trying to sell viagra!)
-						true   // Should it be added to the spammers group? (Yes, as we've set that config option)
+						false, // "Blatant" spammer
+						false, // Should it pass the spammy test? (No, they're trying to sell viagra!)
+						true // Should it be added to the spammers group? (Yes, as we've set that config option)
 				),
 				array(
 						[
-							'gothick_akismet_check_registrations' => false, // Not configured to check registrations...
-							'gothick_akismet_add_registering_spammers_to_group' => 234
+								'gothick_akismet_check_registrations' => true,
+								'gothick_akismet_add_registering_spammers_to_group' => 234
+						], // Config
+						'viagra-test-123', // User name being registered
+						true, // "Blatant" spammer
+						false, // Should it pass the spammy test? (No, they're *blatantly* trying to sell viagra!)
+						true // Should it be added to the spammers group? (Yes, as we've set that config option)
+				),
+				array(
+						[
+								'gothick_akismet_check_registrations' => false, // Not configured to check registrations...
+								'gothick_akismet_add_registering_spammers_to_group' => 234
 						],
 						'viagra-test-123',
 						true,
 						true, // So even a blatant spammer should pass through
 						false // And we shouldn't add it to the spammy group even though we're configured to put spammers in there
-				),array(
+				),
+				array(
 						[
 								'gothick_akismet_check_registrations' => true,
 								'gothick_akismet_add_registering_spammers_to_group' => 234
@@ -230,21 +228,17 @@ class listener_test extends \phpbb_test_case
 	public function test_registration_check ($config, $username, $blatant, $should_pass, $should_add_to_spammy_group)
 	{
 		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
-		if (!$should_pass)
+		if (! $should_pass)
 		{
 			$log->expects($this->once())
 				->method('add')
 				->with($this->equalTo('mod'));
 		}
 
-		$listener = $this->get_listener(
-				new \gothick\akismet\tests\mock\user($username),
-				$config,
-				$log
-		);
-		if ($should_add_to_spammy_group) {
-			$listener
-				->expects($this->once())
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), $config, $log);
+		if ($should_add_to_spammy_group)
+		{
+			$listener->expects($this->once())
 				->method('group_user_add')
 				->with($this->equalTo(234), $this->equalTo(123));
 		}
@@ -254,7 +248,7 @@ class listener_test extends \phpbb_test_case
 				'user_id' => 123,
 				'user_row' => array(
 						'username' => $username,
-						'user_email' => 'whoever@example.com',
+						'user_email' => 'whoever@example.com'
 				)
 		);
 		$event = new \phpbb\event\data($data);
@@ -283,17 +277,13 @@ class listener_test extends \phpbb_test_case
 		{
 			// But if we're not configured, none of our code should run, so there should
 			// be no logging.
-			$log->expects($this->never())->method('add');
+			$log->expects($this->never())
+				->method('add');
 		}
 
-		$listener = $this->get_listener(
-				new \gothick\akismet\tests\mock\user($username),
-				$config,
-				$log
-		);
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), $config, $log);
 
-		$listener
-			->expects($this->never())
+		$listener->expects($this->never())
 			->method('group_user_add');
 
 		// $akismet_mock = new \gothick\akismet\tests\mock\akismet_mock($blatant);
@@ -302,7 +292,7 @@ class listener_test extends \phpbb_test_case
 				'user_id' => 123,
 				'user_row' => array(
 						'username' => $username,
-						'user_email' => 'whoever@example.com',
+						'user_email' => 'whoever@example.com'
 				)
 		);
 		$event = new \phpbb\event\data($data);
