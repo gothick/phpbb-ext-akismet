@@ -41,18 +41,23 @@ class listener_test extends \phpbb_test_case
 		$this->container = new \phpbb_mock_container_builder();
 	}
 
-	protected function get_listener ($user, $config = array(), $log = null)
+	protected function get_listener ($user, \phpbb\config\config $config = null, \phpbb\log\log_interface $log = null)
 	{
 		if (! $log)
 		{
 			$log = new \phpbb\log\dummy();
+		}
+
+		if (! $config)
+		{
+			$config = new \phpbb\config\config([]);
 		}
 		return $this->getMockBuilder(\gothick\akismet\event\main_listener::class)
 			->setConstructorArgs(
 				[
 						$user,
 						$this->getMock('\phpbb\request\request'),
-						new \phpbb\config\config($config),
+						$config,
 						$log,
 						$this->getMock('\phpbb\auth\auth'),
 						$this->container,
@@ -103,7 +108,7 @@ class listener_test extends \phpbb_test_case
 				->with($this->equalTo('mod'));
 		}
 
-		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), [], $log);
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), null, $log);
 		$akismet_mock = new \gothick\akismet\tests\mock\akismet_mock();
 		$this->container->set('gothick.akismet.client', $akismet_mock);
 
@@ -140,7 +145,7 @@ class listener_test extends \phpbb_test_case
 		$log->expects($this->once())
 			->method('add')
 			->with($this->equalTo('critical'));
-		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), [], $log);
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), null, $log);
 		// $akismet_mock = new \gothick\akismet\tests\mock\akismet_mock();
 		// $this->container->set('gothick.akismet.client', null);
 
@@ -235,7 +240,7 @@ class listener_test extends \phpbb_test_case
 				->with($this->equalTo('mod'));
 		}
 
-		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), $config, $log);
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), new \phpbb\config\config($config), $log);
 		if ($should_add_to_spammy_group)
 		{
 			$listener->expects($this->once())
@@ -281,7 +286,7 @@ class listener_test extends \phpbb_test_case
 				->method('add');
 		}
 
-		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), $config, $log);
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), new \phpbb\config\config($config), $log);
 
 		$listener->expects($this->never())
 			->method('group_user_add');
@@ -308,5 +313,87 @@ class listener_test extends \phpbb_test_case
 		{
 			$this->assertTrue($reflection->hasMethod($function_name), 'Event mapped to non-existent function: ' . $function_name);
 		}
+	}
+
+	public function notification_template_data ()
+	{
+		return array(
+				array(
+						true, // gothick_akismet_unapproved
+						'notification.type.some_type_or_other', // Incoming notification type
+						'notification.type.some_type_or_other' // Expected outgoing notification type
+				),
+				array(
+						false, // gothick_akismet_unapproved
+						'notification.type.some_type_or_other', // Incoming notification type
+						'notification.type.some_type_or_other' // Expected outgoing notification type
+				),
+				array(
+						null, // gothick_akismet_unapproved
+						'notification.type.some_type_or_other', // Incoming notification type
+						'notification.type.some_type_or_other' // Expected outgoing notification type
+				),
+				array(
+						null, // gothick_akismet_unapproved
+						'notification.type.post_in_queue', // Incoming notification type
+						'notification.type.post_in_queue' // Expected outgoing notification type
+				),
+				array(
+						null, // gothick_akismet_unapproved
+						'notification.type.topic_in_queue', // Incoming notification type
+						'notification.type.topic_in_queue' // Expected outgoing notification type
+				),
+				array(
+						true, // gothick_akismet_unapproved
+						'notification.type.post_in_queue', // Incoming notification type
+						'gothick.akismet.notification.type.post_in_queue' // Expected outgoing notification type
+				),
+				array(
+						true, // gothick_akismet_unapproved
+						'notification.type.topic_in_queue', // Incoming notification type
+						'gothick.akismet.notification.type.topic_in_queue' // Expected outgoing notification type
+				)
+		);
+	}
+
+	/**
+	 * @dataProvider notification_template_data
+	 */
+	public function test_akismet_notification_template_triggered ($gothick_akismet_unapproved, $incoming_type, $expected_outgoing_type)
+	{
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user('dummy'));
+		$event = new \phpbb\event\data();
+		$data = [
+				'gothick_akismet_unapproved' => $gothick_akismet_unapproved
+		];
+		$event['data'] = $data;
+		$event['notification_type_name'] = $incoming_type;
+		$listener->add_akismet_details_to_notification($event);
+		$this->assertEquals($expected_outgoing_type, $event['notification_type_name']);
+	}
+
+	/**
+	 * Make sure we unset the configuration to send spammers to a particular group if that
+	 * group gets deleted.
+	 */
+	public function test_group_deleted ()
+	{
+		// It should pop something in the moderator log, too.
+		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
+		$log->expects($this->once())
+			->method('add')
+			->with($this->equalTo('mod'));
+
+		$config = new \phpbb\config\config([
+				'gothick_akismet_add_registering_spammers_to_group' => 888
+		]);
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user('dummy'), $config, $log);
+		$event = new \phpbb\event\data();
+		$event['group_id'] = 123;
+		$listener->group_deleted($event);
+		$this->assertEquals(888, $config['gothick_akismet_add_registering_spammers_to_group']);
+		$event['group_id'] = 888;
+		$listener->group_deleted($event);
+		$this->assertEquals(0, $config['gothick_akismet_add_registering_spammers_to_group']);
 	}
 }
