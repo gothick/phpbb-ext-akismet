@@ -159,11 +159,21 @@ class main_listener implements EventSubscriberInterface
 
 			$is_spam = false;
 			$is_blatant_spam = false;
-			$result = $this->akismet_comment_check($user_id, $params);
-			if ($result)
+
+			try
 			{
-				$is_spam = $result->isSpam();
-				$is_blatant_spam = $result->isBlatantSpam();
+				$result = $this->akismet_comment_check($user_id, $params);
+				if ($result)
+				{
+					$is_spam = $result->isSpam();
+					$is_blatant_spam = $result->isBlatantSpam();
+				}
+			}
+			catch ( \Exception $e )
+			{
+				// akismet_comment_check will have quietly logged an error. All we want
+				// to do is quietly pass registrations through okay on any kind of
+				// general failure.
 			}
 			if ($is_spam)
 			{
@@ -187,10 +197,13 @@ class main_listener implements EventSubscriberInterface
 
 	/**
 	 * Separated out so we can mock this global function more easily in our unit testing.
+	 *
+	 * @codeCoverageIgnore Because we can't run this in testing (that's why we're mocking it) and it's trivial
+	 *
 	 * @param int $group_id
 	 * @param int $user_id
 	 */
-	public function group_user_add($group_id, $user_id)
+	protected function group_user_add($group_id, $user_id)
 	{
 		group_user_add($group_id, $user_id);
 	}
@@ -227,18 +240,26 @@ class main_listener implements EventSubscriberInterface
 		// http://blog.akismet.com/2012/06/19/pro-tip-tell-us-your-comment_type/
 		$params['comment_type'] = 'forum-post';
 
-		$result = $this->akismet_comment_check($this->user->data['user_id'], $params);
-		// We either get false back on unexpected failure, or a CommentCheckResult object. If we got
-		// false back, chances are good that we've already added the details to the phpBB error log,
-		// so here we just quietly ignore the problem.
-		if ($result instanceof \Gothick\AkismetClient\Result\CommentCheckResult)
+		try
 		{
-			// TODO: Also available from our result object is isBlatantSpam, indicating something
-			// so obviously spammy that it can be silently discarded without human intervention.
-			// Might want to do something more extreme with those.
-			$is_spam = $result->isSpam();
+			$result = $this->akismet_comment_check($this->user->data['user_id'], $params);
+			// We either get false back on unexpected failure, or a CommentCheckResult object. If we got
+			// false back, chances are good that we've already added the details to the phpBB error log,
+			// so here we just quietly ignore the problem.
+			if ($result instanceof \Gothick\AkismetClient\Result\CommentCheckResult)
+			{
+				// TODO: Also available from our result object is isBlatantSpam, indicating something
+				// so obviously spammy that it can be silently discarded without human intervention.
+				// Might want to do something more extreme with those.
+				$is_spam = $result->isSpam();
+			}
 		}
-
+		catch (\Exception $e)
+		{
+			// Our akismet_comment_check method will log problems to the phpBB error log. Here we just
+			// want silently to ignore any problems and not mark anything as spam, given that we can't
+			// tell whether it is or not.
+		}
 		return $is_spam;
 	}
 
@@ -248,102 +269,96 @@ class main_listener implements EventSubscriberInterface
 	 * @param int $user_id User ID of the commenter (or newly-registered potential commenter)
 	 * @param array $params Akismet parameters
 	 * @throws \Exception
-	 * @return boolean|\Gothick\AkismetClient\Result\CommentCheckResult false on failure or a result oject otherwise.
+	 * @return boolean|\Gothick\AkismetClient\Result\CommentCheckResult False on failure or a result oject otherwise.
 	 */
 	protected function akismet_comment_check ($user_id, $params)
 	{
-		$result = false;
-		/** @var $akismet \Gothick\AkismetClient\Client */
-		$akismet = $this->phpbb_container->get('gothick.akismet.client', ContainerInterface::NULL_ON_INVALID_REFERENCE);
+		try
+		{
+			/** @var \Gothick\AkismetClient\Client */
+			$akismet = $this->phpbb_container->get('gothick.akismet.client', ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE);
+			// TODO: Use AKISMET_LOG_NO_KEY_CONFIGURED later, when we've changed things so we can do key validation.
 
-		if (! $akismet)
-		{
-			$this->log->add('critical', $user_id, $this->user->ip, 'AKISMET_LOG_NO_KEY_CONFIGURED', false);
-		}
-		else
-		{
-			try
+			// We can't just pass $_SERVER in to our Akismet client as phpBB turns off super globals (which is,
+			// of course, fair enough.) Interrogate our request object instead, grabbing as many relevant
+			// things as we can, excluding anything that might leak anything sensitive to Akismet (bear in
+			// mind we're already throwing all the user details and the entire contents of their comment
+			// at Akismet, of course.)
+
+			// https://akismet.com/development/api/#comment-check
+			// "This data is highly useful to Akismet. How the submitted content interacts with the server can
+			// be very telling, so please include as much of it as possible."
+			$server_vars = array(
+					// TODO: Use a blacklist for sensitive server-related stuff, rather than a whitelist. It'll
+					// be more friendly for other people's setups, and the code will be shorter.
+					'AUTH_TYPE',
+					'GATEWAY_INTERFACE',
+					'HTTPS',
+					'HTTP_ACCEPT',
+					'HTTP_ACCEPT_CHARSET',
+					'HTTP_ACCEPT_ENCODING',
+					'HTTP_ACCEPT_LANGUAGE',
+					'HTTP_CONNECTION',
+					'HTTP_HOST',
+					'HTTP_REFERER',
+					'HTTP_USER_AGENT',
+					'ORIG_PATH_INFO',
+					'PATH_INFO',
+					'PATH_TRANSLATED',
+					'PHP_AUTH_DIGEST',
+					'PHP_AUTH_PW',
+					'PHP_SELF',
+					'PHP_AUTH_USER',
+					'QUERY_STRING',
+					'REDIRECT_REMOTE_USER',
+					'REMOTE_ADDR',
+					'REMOTE_HOST',
+					'REMOTE_PORT',
+					'REMOTE_USER',
+					'REQUEST_METHOD',
+					'REQUEST_SCHEME',
+					'REQUEST_TIME',
+					'REQUEST_TIME_FLOAT',
+					'REQUEST_URI',
+					'SCRIPT_FILENAME',
+					'SCRIPT_NAME',
+					'SCRIPT_URI',
+					'SCRIPT_URL',
+					'SERVER_ADDR',
+					'SERVER_NAME',
+					'SERVER_PORT',
+					'SERVER_PROTOCOL',
+					'SERVER_SIGNATURE',
+					'SERVER_SOFTWARE',
+					'USER'
+			);
+
+			// Try to recreate $_SERVER.
+			$server = array();
+			foreach ($server_vars as $var)
 			{
-				// We can't just pass $_SERVER in to our Akismet client as phpBB turns off super globals (which is,
-				// of course, fair enough.) Interrogate our request object instead, grabbing as many relevant
-				// things as we can, excluding anything that might leak anything sensitive to Akismet (bear in
-				// mind we're already throwing all the user details and the entire contents of their comment
-				// at Akismet, of course.)
-
-				// https://akismet.com/development/api/#comment-check
-				// "This data is highly useful to Akismet. How the submitted content interacts with the server can
-				// be very telling, so please include as much of it as possible."
-				$server_vars = array(
-						// TODO: Use a blacklist for sensitive server-related stuff, rather than a whitelist. It'll
-						// be more friendly for other people's setups, and the code will be shorter.
-						'AUTH_TYPE',
-						'GATEWAY_INTERFACE',
-						'HTTPS',
-						'HTTP_ACCEPT',
-						'HTTP_ACCEPT_CHARSET',
-						'HTTP_ACCEPT_ENCODING',
-						'HTTP_ACCEPT_LANGUAGE',
-						'HTTP_CONNECTION',
-						'HTTP_HOST',
-						'HTTP_REFERER',
-						'HTTP_USER_AGENT',
-						'ORIG_PATH_INFO',
-						'PATH_INFO',
-						'PATH_TRANSLATED',
-						'PHP_AUTH_DIGEST',
-						'PHP_AUTH_PW',
-						'PHP_SELF',
-						'PHP_AUTH_USER',
-						'QUERY_STRING',
-						'REDIRECT_REMOTE_USER',
-						'REMOTE_ADDR',
-						'REMOTE_HOST',
-						'REMOTE_PORT',
-						'REMOTE_USER',
-						'REQUEST_METHOD',
-						'REQUEST_SCHEME',
-						'REQUEST_TIME',
-						'REQUEST_TIME_FLOAT',
-						'REQUEST_URI',
-						'SCRIPT_FILENAME',
-						'SCRIPT_NAME',
-						'SCRIPT_URI',
-						'SCRIPT_URL',
-						'SERVER_ADDR',
-						'SERVER_NAME',
-						'SERVER_PORT',
-						'SERVER_PROTOCOL',
-						'SERVER_SIGNATURE',
-						'SERVER_SOFTWARE',
-						'USER'
-				);
-
-				// Try to recreate $_SERVER.
-				$server = array();
-				foreach ($server_vars as $var)
+				$value = $this->request->server($var, null);
+				if ($value != null)
 				{
-					$value = $this->request->server($var, null);
-					if ($value != null)
-					{
-						$server[$var] = $value;
-					}
+					$server[$var] = $value;
 				}
+			}
 
-				$result = $akismet->commentCheck($params, $server);
-			}
-			catch (\Exception $e)
-			{
-				$this->log->add(
-						'critical',
-						$user_id,
-						$this->user->ip,
-						'AKISMET_LOG_CALL_FAILED',
-						false,
-						[$e->getMessage()]
-				);
-				throw $e;
-			}
+			$result = $akismet->commentCheck($params, $server);
 		}
+		catch (\Exception $e)
+		{
+			$this->log->add(
+					'critical',
+					$user_id,
+					$this->user->ip,
+					'AKISMET_LOG_CALL_FAILED',
+					false,
+					[$e->getMessage()]
+			);
+			throw $e;
+		}
+
 		return $result;
 	}
 
