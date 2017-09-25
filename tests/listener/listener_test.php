@@ -42,8 +42,12 @@ class listener_test extends \phpbb_test_case
 		$this->container = new \phpbb_mock_container_builder();
 	}
 
-	protected function get_listener($user, $config = array())
+	protected function get_listener($user, $config = array(), $log = null)
 	{
+		if (!$log)
+		{
+			$log = new \phpbb\log\dummy();
+		}
 		return $this
 			->getMockBuilder(\gothick\akismet\event\main_listener::class)
 			->setConstructorArgs(
@@ -51,7 +55,7 @@ class listener_test extends \phpbb_test_case
 							$user,
 							$this->getMock('\phpbb\request\request'),
 							new \phpbb\config\config($config),
-							new \phpbb\log\dummy(),
+							$log,
 							$this->getMock('\phpbb\auth\auth'),
 							$this->container,
 							'php', // $php_ext,
@@ -119,6 +123,35 @@ class listener_test extends \phpbb_test_case
 		}
 	}
 
+	/**
+	 * @dataProvider post_data
+	 */
+	public function test_no_akismet_object_post ($username, $message, $mode, $should_pass)
+	{
+		// This is the same as test_post_check except because we don't have an Akismet
+		// object set up, every check should quietly pass (with no exceptions, but a
+		// bit of gentle logging.)
+		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
+		$log->expects($this->once())
+			->method('add')
+			->with($this->equalTo('critical'));
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), [], $log);
+		// $akismet_mock = new \gothick\akismet\tests\mock\akismet_mock();
+		// $this->container->set('gothick.akismet.client', null);
+
+		$data = array(
+				'mode' => $mode,
+				'data' => array(
+						'message' => $message,
+						'topic_id' => 123,
+				)
+		);
+		$event = new \phpbb\event\data($data);
+		$listener->check_submitted_post($event);
+
+		// As we couldn't have gotten an Akismet object, every test should pass.
+		$this->assertFalse(isset($event['data']['force_approved_state']));
+	}
 
 	public function user_registration_data ()
 	{
@@ -213,7 +246,55 @@ class listener_test extends \phpbb_test_case
 		// TODO: Test log messages & anything else you can think of
 	}
 
-		public function test_getSubscribedEvents ()
+	/**
+	 * @dataProvider user_registration_data
+	 *
+	 * Same as test_registration_check, except we'll fake a failure to create the Akismet client. All
+	 * registrations should pass through without being marked as spam.
+	 */
+	public function test_no_akismet_object_registration ($config, $username, $blatant, $should_pass, $should_add_to_spammy_group)
+	{
+		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
+
+		if ($config['gothick_akismet_check_registrations'])
+		{
+			// If we're configured to check registrations, then I expect us to fail with
+			// an exception, as there'll be no Akismet client configured.
+			$log->expects($this->once())
+				->method('add')
+				->with($this->equalTo('critical'));
+		}
+		else
+		{
+			// But if we're not configured, none of our code should run, so there should
+			// be no logging.
+			$log->expects($this->never())->method('add');
+		}
+
+		$listener = $this->get_listener(
+				new \gothick\akismet\tests\mock\user($username),
+				$config,
+				$log
+		);
+
+		$listener
+			->expects($this->never())
+			->method('group_user_add');
+
+		// $akismet_mock = new \gothick\akismet\tests\mock\akismet_mock($blatant);
+		// $this->container->set('gothick.akismet.client', $akismet_mock);
+		$data = array(
+				'user_id' => 123,
+				'user_row' => array(
+						'username' => $username,
+						'user_email' => 'whoever@example.com',
+				)
+		);
+		$event = new \phpbb\event\data($data);
+		$listener->check_new_user($event);
+	}
+
+	public function test_getSubscribedEvents ()
 	{
 		$function_map = \gothick\akismet\event\main_listener::getSubscribedEvents();
 		$this->assertGreaterThan(0, count($function_map), 'No events subscribed');
