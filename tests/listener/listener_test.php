@@ -98,7 +98,15 @@ class listener_test extends \phpbb_test_case
 	 */
 	public function test_post_check ($username, $message, $mode, $should_pass)
 	{
-		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username));
+		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
+		if (!$should_pass)
+		{
+			$log->expects($this->once())
+			->method('add')
+			->with($this->equalTo('mod'));
+		}
+
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), [], $log);
 		$akismet_mock = new \gothick\akismet\tests\mock\akismet_mock();
 		$this->container->set('gothick.akismet.client', $akismet_mock);
 
@@ -221,9 +229,18 @@ class listener_test extends \phpbb_test_case
 	 */
 	public function test_registration_check ($config, $username, $blatant, $should_pass, $should_add_to_spammy_group)
 	{
+		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
+		if (!$should_pass)
+		{
+			$log->expects($this->once())
+				->method('add')
+				->with($this->equalTo('mod'));
+		}
+
 		$listener = $this->get_listener(
 				new \gothick\akismet\tests\mock\user($username),
-				$config
+				$config,
+				$log
 		);
 		if ($should_add_to_spammy_group) {
 			$listener
@@ -242,8 +259,6 @@ class listener_test extends \phpbb_test_case
 		);
 		$event = new \phpbb\event\data($data);
 		$listener->check_new_user($event);
-
-		// TODO: Test log messages & anything else you can think of
 	}
 
 	/**
