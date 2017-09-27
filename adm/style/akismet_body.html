@@ -31,7 +31,7 @@
 		</dl>
 		<dl>
 			<dt>
-				<label for="gothick_akismet_check_registrations">{L_ACP_AKISMET_ADD_DETECTED_SPAMMERS_TO_GROUP}{L_COLON}</label>
+				<label for="add_registering_spammers_to_group">{L_ACP_AKISMET_ADD_DETECTED_SPAMMERS_TO_GROUP}{L_COLON}</label>
 				<br/>
 				<span>{L_ACP_AKISMET_ADD_DETECTED_SPAMMERS_TO_GROUP_EXPLAIN}</span>
 			</dt>
@@ -40,6 +40,21 @@
 					<select name="add_registering_spammers_to_group" id="add_registering_spammers_to_group">
 						<option value="0">{L_ACP_AKISMET_DONT_ADD_REGISTERING_SPAMMERS_TO_GROUP}</option>
 						{S_GROUP_LIST}
+					</select>
+				</dd>
+			</dd>
+		</dl>
+		<dl>
+			<dt>
+				<label for="add_registering_blatant_spammers_to_group">{L_ACP_AKISMET_ADD_DETECTED_BLATANT_SPAMMERS_TO_GROUP}{L_COLON}</label>
+				<br/>
+				<span>{L_ACP_AKISMET_ADD_DETECTED_BLATANT_SPAMMERS_TO_GROUP_EXPLAIN}</span>
+			</dt>
+			<dd>
+				<dd>
+					<select name="add_registering_blatant_spammers_to_group" id="add_registering_blatant_spammers_to_group">
+						<option value="0">{L_ACP_AKISMET_DONT_ADD_REGISTERING_BLATANT_SPAMMERS_TO_GROUP}</option>
+						{S_GROUP_LIST_BLATANT}
 					</select>
 				</dd>
 			</dd>

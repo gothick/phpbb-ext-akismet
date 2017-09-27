@@ -173,7 +173,8 @@ class listener_test extends \phpbb_test_case
 						'viagra-test-123', // User name being registered
 						false, // "Blatant" spammer
 						false, // Should it pass the spammy test? (No, they're trying to sell viagra!)
-						false // Should it be added to the spammers group? (No, as we've not set that config option)
+						false, // Should it be added to the spammers group? (No, as we've not set that config option)
+						false  // Should it be added to the blatant spammers group? (No, as we've not set that config option)
 				),
 				array(
 						[
@@ -182,7 +183,8 @@ class listener_test extends \phpbb_test_case
 						'viagra-test-123', // User name being registered
 						true, // "Blatant" spammer
 						false, // Should it pass the spammy test? (No, they're *blatantly* trying to sell viagra!)
-						false // Should it be added to the spammers group? (No, as we've not set that config option.)
+						false, // Should it be added to the spammers group? (No, as we've not set that config option.)
+						false  // Should it be added to the blatant spammers group? (No, as we've not set that config option)
 				),
 				array(
 						[
@@ -192,7 +194,8 @@ class listener_test extends \phpbb_test_case
 						'viagra-test-123', // User name being registered
 						false, // "Blatant" spammer
 						false, // Should it pass the spammy test? (No, they're trying to sell viagra!)
-						true // Should it be added to the spammers group? (Yes, as we've set that config option)
+						true, // Should it be added to the spammers group? (Yes, as we've set that config option)
+						false  // Should it be added to the blatant spammers group? (No, as we've not set that config option)
 				),
 				array(
 						[
@@ -202,35 +205,52 @@ class listener_test extends \phpbb_test_case
 						'viagra-test-123', // User name being registered
 						true, // "Blatant" spammer
 						false, // Should it pass the spammy test? (No, they're *blatantly* trying to sell viagra!)
-						true // Should it be added to the spammers group? (Yes, as we've set that config option)
+						true, // Should it be added to the spammers group? (Yes, as we've set that config option)
+						false  // Should it be added to the blatant spammers group? (No, as we've not set that config option)
 				),
 				array(
 						[
 								'gothick_akismet_check_registrations' => false, // Not configured to check registrations...
-								'gothick_akismet_add_registering_spammers_to_group' => 234
+								'gothick_akismet_add_registering_spammers_to_group' => 234,
+								'gothick_akismet_add_registering_blatant_spammers_to_group' => 345
 						],
 						'viagra-test-123',
 						true,
 						true, // So even a blatant spammer should pass through
-						false // And we shouldn't add it to the spammy group even though we're configured to put spammers in there
+						false, // And we shouldn't add it to the spammy group even though we're configured to put spammers in there
+						false  // ...nor to the blatant spammers group
 				),
 				array(
 						[
 								'gothick_akismet_check_registrations' => true,
-								'gothick_akismet_add_registering_spammers_to_group' => 234
+								'gothick_akismet_add_registering_spammers_to_group' => 234,
+								'gothick_akismet_add_registering_blatant_spammers_to_group' => 345
 						],
 						'matt',
 						false,
 						true, // "Matt" should be fine; he's not trying to sell us viagra
-						false // And shouldn't be added to the spammy group, even though we're configured to put spammers in there.
-				)
+						false, // And shouldn't be added to the spammy group, even though we're configured to put spammers in there.
+						false  // ...nor to the blatant spammers group
+				),
+				array(
+						[
+								'gothick_akismet_check_registrations' => true,
+								'gothick_akismet_add_registering_spammers_to_group' => 234,
+								'gothick_akismet_add_registering_blatant_spammers_to_group' => 345
+						],
+						'viagra-test-123',
+						true, // Blatant spammer
+						false, // Shouldn't pass the spammy test
+						false, // Should be added to the spammy group
+						false  // *and* to the the blatant spammers group
+				),
 		);
 	}
 
 	/**
 	 * @dataProvider user_registration_data
 	 */
-	public function test_registration_check ($config, $username, $blatant, $should_pass, $should_add_to_spammy_group)
+	public function test_registration_check ($config, $username, $blatant, $should_pass, $should_add_to_spammy_group, $should_add_to_blatantly_spammy_group)
 	{
 		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
 		if (! $should_pass)
@@ -246,6 +266,12 @@ class listener_test extends \phpbb_test_case
 			$listener->expects($this->once())
 				->method('group_user_add')
 				->with($this->equalTo(234), $this->equalTo(123));
+		}
+		if ($should_add_to_blatantly_spammy_group)
+		{
+			$listener->expects($this->once())
+			->method('group_user_add')
+			->with($this->equalTo(345), $this->equalTo(123));
 		}
 		$akismet_mock = new \gothick\akismet\tests\mock\akismet_mock($blatant);
 		$this->container->set('gothick.akismet.client', $akismet_mock);
@@ -376,7 +402,7 @@ class listener_test extends \phpbb_test_case
 	 * Make sure we unset the configuration to send spammers to a particular group if that
 	 * group gets deleted.
 	 */
-	public function test_group_deleted ()
+	public function test_normal_spammy_group_deleted ()
 	{
 		// It should pop something in the moderator log, too.
 		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
@@ -385,7 +411,8 @@ class listener_test extends \phpbb_test_case
 			->with($this->equalTo('mod'));
 
 		$config = new \phpbb\config\config([
-				'gothick_akismet_add_registering_spammers_to_group' => 888
+				'gothick_akismet_add_registering_spammers_to_group' => 888,
+				'gothick_akismet_add_registering_blatant_spammers_to_group' => 999 // Should remain unchanged
 		]);
 		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user('dummy'), $config, $log);
 		$event = new \phpbb\event\data();
@@ -395,5 +422,37 @@ class listener_test extends \phpbb_test_case
 		$event['group_id'] = 888;
 		$listener->group_deleted($event);
 		$this->assertEquals(0, $config['gothick_akismet_add_registering_spammers_to_group']);
+
+		// The other group should remain unchanged by all this
+		$this->assertEquals(999, $config['gothick_akismet_add_registering_blatant_spammers_to_group']);
+	}
+
+	/**
+	 * Make sure we unset the configuration to send spammers to a particular group if that
+	 * group gets deleted.
+	 */
+	public function test_blatantly_spammy_group_deleted ()
+	{
+		// It should pop something in the moderator log, too.
+		$log = $this->getMockBuilder(\phpbb\log\dummy::class)->getMock();
+		$log->expects($this->once())
+		->method('add')
+		->with($this->equalTo('mod'));
+
+		$config = new \phpbb\config\config([
+				'gothick_akismet_add_registering_spammers_to_group' => 888,
+				'gothick_akismet_add_registering_blatant_spammers_to_group' => 999 // Should remain unchanged
+		]);
+		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user('dummy'), $config, $log);
+		$event = new \phpbb\event\data();
+		$event['group_id'] = 123;
+		$listener->group_deleted($event);
+		$this->assertEquals(999, $config['gothick_akismet_add_registering_blatant_spammers_to_group']);
+		$event['group_id'] = 999;
+		$listener->group_deleted($event);
+		$this->assertEquals(0, $config['gothick_akismet_add_registering_blatant_spammers_to_group']);
+
+		// The other group should remain unchanged by all this
+		$this->assertEquals(888, $config['gothick_akismet_add_registering_spammers_to_group']);
 	}
 }

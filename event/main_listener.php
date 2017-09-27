@@ -191,6 +191,14 @@ class main_listener implements EventSubscriberInterface
 				{
 					$this->group_user_add($group_id, $user_id);
 				}
+
+				if ($is_blatant_spam)
+				{
+					if ($group_id = $this->config['gothick_akismet_add_registering_blatant_spammers_to_group'])
+					{
+						$this->group_user_add($group_id, $user_id);
+					}
+				}
 			}
 		}
 	}
@@ -394,17 +402,22 @@ class main_listener implements EventSubscriberInterface
 	{
 		$group_id = $event['group_id'];
 		if ($group_id == $this->config['gothick_akismet_add_registering_spammers_to_group']) {
-
 			$this->config->set('gothick_akismet_add_registering_spammers_to_group', 0);
-
-			$this->log->add(
-					'mod',
-					$this->user->data['user_id'],
-					$this->user->ip,
-					'AKISMET_LOG_SPAMMER_GROUP_REMOVED',
-					false,
-					[ $event['group_name'] ]
-			);
+			$this->log_disable_group_add($event['group_name']);
 		}
+		if ($group_id == $this->config['gothick_akismet_add_registering_blatant_spammers_to_group']) {
+			$this->config->set('gothick_akismet_add_registering_blatant_spammers_to_group', 0);
+			$this->log_disable_group_add($event['group_name']);
+		}
+	}
+	protected function log_disable_group_add ($group_name) {
+		$this->log->add(
+				'mod',
+				$this->user->data['user_id'],
+				$this->user->ip,
+				'AKISMET_LOG_SPAMMER_GROUP_REMOVED',
+				false,
+				[ $group_name ]
+		);
 	}
 }

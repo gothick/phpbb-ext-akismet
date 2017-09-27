@@ -101,7 +101,8 @@ class admin_controller
 						'U_ACTION' => $this->u_action,
 						'API_KEY' => $this->config['gothick_akismet_api_key'],
 						'S_CHECK_REGISTRATIONS' => $this->config['gothick_akismet_check_registrations'],
-						'S_GROUP_LIST' => $this->group_select_options($this->config['gothick_akismet_add_registering_spammers_to_group'])
+						'S_GROUP_LIST' => $this->group_select_options($this->config['gothick_akismet_add_registering_spammers_to_group']),
+						'S_GROUP_LIST_BLATANT' => $this->group_select_options($this->config['gothick_akismet_add_registering_blatant_spammers_to_group'])
 				));
 
 	}
@@ -114,12 +115,12 @@ class admin_controller
 		/** @var \phpbb\group\helper $group_helper */
 		$group_helper = $phpbb_container->get('group_helper');
 
-		$sql_coppa = (!$config['coppa_enable']) ? " WHERE group_name <> 'REGISTERED_COPPA'" : '';
+		$sql_and = (!$config['coppa_enable']) ? " AND group_name <> 'REGISTERED_COPPA'" : '';
 
-		$sql = 'SELECT group_id, group_name, group_type
-		FROM ' . GROUPS_TABLE . "
-		$sql_coppa
-		ORDER BY group_type DESC, group_name ASC";
+		$sql = 'SELECT group_id, group_type, group_name
+				FROM ' . GROUPS_TABLE . '
+				WHERE (group_type <> ' . GROUP_SPECIAL . " OR group_name = 'NEWLY_REGISTERED') " . "
+				$sql_and";
 
 		$result = $db->sql_query($sql);
 
@@ -143,6 +144,7 @@ class admin_controller
 		$this->config->set('gothick_akismet_api_key', $this->request->variable('api_key', ''));
 		$this->config->set('gothick_akismet_check_registrations', $this->request->variable('check_registrations', 0));
 		$this->config->set('gothick_akismet_add_registering_spammers_to_group', $this->request->variable('add_registering_spammers_to_group', 0));
+		$this->config->set('gothick_akismet_add_registering_blatant_spammers_to_group', $this->request->variable('add_registering_blatant_spammers_to_group', 0));
 	}
 	/**
 	* Set action
