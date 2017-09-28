@@ -115,13 +115,9 @@ class admin_controller
 		/** @var \phpbb\group\helper $group_helper */
 		$group_helper = $phpbb_container->get('group_helper');
 
-		$sql_and = (!$config['coppa_enable']) ? " AND group_name <> 'REGISTERED_COPPA'" : '';
-
 		$sql = 'SELECT group_id, group_type, group_name
 				FROM ' . GROUPS_TABLE . '
-				WHERE (group_type <> ' . GROUP_SPECIAL . " OR group_name = 'NEWLY_REGISTERED') " . "
-				$sql_and";
-
+				WHERE (group_type <> ' . GROUP_SPECIAL . " OR group_name = 'NEWLY_REGISTERED') " ;
 		$result = $db->sql_query($sql);
 
 		$s_group_options = '';
