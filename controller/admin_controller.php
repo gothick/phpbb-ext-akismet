@@ -36,6 +36,12 @@ class admin_controller
 	/** @var \phpbb\language\language */
 	protected $language;
 
+	/** @var string */
+	protected $php_ext;
+
+	/** @var string */
+	protected $phpbb_root_path;
+
 	const FORM_KEY = 'gothick/akismet';
 
 	/**
@@ -47,6 +53,8 @@ class admin_controller
 	* @param \phpbb\log\log_interface $log Log object
 	* @param \phpbb\config\config $config Config object
 	* @param \phpbb\language\language $language Language object
+	* @param string $php_ext
+	* @param string $phpbb_root_path
 	*/
 	public function __construct(
 			\phpbb\request\request $request,
@@ -54,7 +62,9 @@ class admin_controller
 			\phpbb\user $user,
 			\phpbb\log\log_interface $log,
 			\phpbb\config\config $config,
-			\phpbb\language\language $language
+			\phpbb\language\language $language,
+			$php_ext,
+			$phpbb_root_path
 		)
 	{
 		$this->request = $request;
@@ -63,6 +73,14 @@ class admin_controller
 		$this->log = $log;
 		$this->config = $config;
 		$this->language = $language;
+		$this->php_ext = $php_ext;
+		$this->phpbb_root_path = $phpbb_root_path;
+
+		// When unit testing, we may not have functions_acp included already.
+		if (!function_exists('adm_back_link'))
+		{
+			include $this->phpbb_root_path . 'includes/functions_acp.' . $this->php_ext;
+		}
 	}
 
 	/**

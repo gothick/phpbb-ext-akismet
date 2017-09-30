@@ -23,6 +23,8 @@ services:
             - '@log'
             - '@config'
             - '@language'
+            - '%core.php_ext%'
+            - '%core.root_path%'
 
     gothick.akismet.client.factory:
         class: gothick\akismet\utility\akismet_factory
