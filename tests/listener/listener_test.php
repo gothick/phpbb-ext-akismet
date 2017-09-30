@@ -43,6 +43,7 @@ class listener_test extends \phpbb_test_case
 
 	protected function get_listener ($user, \phpbb\config\config $config = null, \phpbb\log\log_interface $log = null)
 	{
+		global $phpbb_root_path, $phpEx;
 		if (! $log)
 		{
 			$log = new \phpbb\log\dummy();
@@ -61,8 +62,8 @@ class listener_test extends \phpbb_test_case
 						$log,
 						$this->getMock('\phpbb\auth\auth'),
 						$this->container,
-						'php', // $php_ext,
-						__DIR__ . '/../../../../../' // $root_path;
+						$phpEx,
+						$phpbb_root_path
 				])
 			->setMethods([
 				'group_user_add'
