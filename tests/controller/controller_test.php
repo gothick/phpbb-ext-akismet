@@ -23,7 +23,7 @@ namespace gothick\akismet\controller {
 	// gets overridden.
 	function check_form_key($dummy)
 	{
-		return true;
+		return \gothick\akismet\tests\controller\main_controller_test::$check_form_key_result;
 	}
 	function add_form_key($dummy)
 	{
@@ -35,6 +35,8 @@ namespace gothick\akismet\tests\controller {
 
 	class main_controller_test extends \phpbb_test_case
 	{
+		public static $check_form_key_result = false;
+
 		/** @var \phpbb\request\request|\PHPUnit_Framework_MockObject_MockObject */
 		protected $request;
 		/** @var \phpbb\template\template|\PHPUnit_Framework_MockObject_MockObject */
@@ -84,8 +86,10 @@ namespace gothick\akismet\tests\controller {
 			$controller = $this->get_controller();
 			$this->assertInstanceOf(admin_controller::class, $controller);
 		}
+
 		public function test_save_settings_logged()
 		{
+			self::$check_form_key_result = true;
 			$this->setExpectedTriggerError(E_USER_NOTICE, 'ACP_AKISMET_SETTING_SAVED');
 			$this->request->method('is_set_post')->with('submit')->willReturn('submit');
 
@@ -95,6 +99,17 @@ namespace gothick\akismet\tests\controller {
 
 			$controller = $this->get_controller();
 
+			$controller->display_settings();
+		}
+		/**
+		 * Make sure we're paying attention to the form key.
+		 */
+		public function test_invalid_form_key()
+		{
+			self::$check_form_key_result = false;
+			$this->setExpectedTriggerError(E_USER_NOTICE, 'FORM_INVALID');
+			$this->request->method('is_set_post')->with('submit')->willReturn('submit');
+			$controller = $this->get_controller();
 			$controller->display_settings();
 		}
 	}
