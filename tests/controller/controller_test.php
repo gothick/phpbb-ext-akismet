@@ -1,5 +1,6 @@
 <?php
 /**
+ * Basic admin controller tests
  *
  * @package phpBB Extension - Gothick Akismet
  * @copyright (c) 2017 Matt Gibson Creative Ltd.
@@ -16,11 +17,12 @@
  * https://github.com/phpbb-extensions/autogroups/blob/master/tests/controller/submit_autogroup_rule_test.php
  */
 
+/**
+ * Override form_key global functions with ones that depend on a simple flag
+ * we can set in our test class. Note we have to change namespaces so the functions
+ * end up in the controller's namespace.
+ */
 namespace gothick\akismet\controller {
-	// Override global CSRF functions using the controller's namespace, so
-	// we don't have to worry about them during this test. We use two namespaces
-	// in this file so that autoloading still works but the global function still
-	// gets overridden.
 	function check_form_key($dummy)
 	{
 		return \gothick\akismet\tests\controller\main_controller_test::$check_form_key_result;
@@ -30,6 +32,9 @@ namespace gothick\akismet\controller {
 	}
 }
 
+/**
+ * Basic tests of the Admin Controller
+ */
 namespace gothick\akismet\tests\controller {
 	use \gothick\akismet\controller\admin_controller;
 
@@ -81,12 +86,19 @@ namespace gothick\akismet\tests\controller {
 			);
 			return $controller;
 		}
+
+		/**
+		 * Basic test to exercise the constructor
+		 */
 		public function test_construct()
 		{
 			$controller = $this->get_controller();
 			$this->assertInstanceOf(admin_controller::class, $controller);
 		}
 
+		/**
+		 * Make sure we log the change of settings to the admin log.
+		 */
 		public function test_save_settings_logged()
 		{
 			self::$check_form_key_result = true;
@@ -101,6 +113,7 @@ namespace gothick\akismet\tests\controller {
 
 			$controller->display_settings();
 		}
+
 		/**
 		 * Make sure we're paying attention to the form key.
 		 */
