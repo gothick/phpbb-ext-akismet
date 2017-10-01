@@ -52,8 +52,8 @@ class main_listener implements EventSubscriberInterface
 	 * Constructor
 	 *
 	 * Lightweight initialisation of the API key and user ID.
-	 * Heavy lifting is done only if the user actually tries
-	 * to post a message.
+	 * Heavy lifting is done only if we actually need to run
+	 * Akismet.
 	 *
 	 * @param \phpbb\user $user
 	 * @param \phpbb\request\request $request
