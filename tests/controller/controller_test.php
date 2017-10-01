@@ -54,6 +54,8 @@ namespace gothick\akismet\tests\controller {
 		protected $language;
 		/** @var \phpbb\user|\PHPUnit_Framework_MockObject_MockObject */
 		protected $user;
+		/** @var \phpbb\group\helper|\PHPUnit_Framework_MockObject_MockObject */
+		protected $group_helper;
 
 		public function setUp()
 		{
@@ -66,7 +68,8 @@ namespace gothick\akismet\tests\controller {
 			$lang_loader = new \phpbb\language\language_file_loader($phpbb_root_path, $phpEx);
 			$this->language = new \phpbb\language\language($lang_loader);
 			$this->user = new \phpbb\user($this->language, '\phpbb\datetime');
-
+			$this->group_helper = $this->getMockBuilder(\phpbb\group\helper::class)->disableOriginalConstructor()->getMock();
+			$this->db = $this->getMockBuilder(\phpbb\db\driver\driver_interface::class)->getMock();
 		}
 
 		public function get_controller()
@@ -81,6 +84,8 @@ namespace gothick\akismet\tests\controller {
 					$this->log,
 					$this->config,
 					$this->language,
+					$this->group_helper,
+					$this->db,
 					$phpEx,
 					$phpbb_root_path
 			);
@@ -123,6 +128,96 @@ namespace gothick\akismet\tests\controller {
 			$this->setExpectedTriggerError(E_USER_NOTICE, 'FORM_INVALID');
 			$this->request->method('is_set_post')->with('submit')->willReturn('submit');
 			$controller = $this->get_controller();
+			$controller->display_settings();
+		}
+
+		/**
+		 * @group failing
+		 */
+		public function test_assign_vars()
+		{
+			$this->config['gothick_akismet_api_key'] = 'IM_AN_API_KEY_HONEST_GUV_123';
+			$this->config['gothick_akismet_check_registrations'] = 1;
+			$this->config['gothick_akismet_add_registering_spammers_to_group'] = 2;
+			$this->config['gothick_akismet_add_registering_blatant_spammers_to_group'] = 3;
+			$this->db->expects($this->any())
+				->method('sql_fetchrow')
+				->will(
+					$this->onConsecutiveCalls(
+							array(
+									// Should be ignored, as we ignore all special groups except NEWLY_REGISTERED
+									'group_id' => '1',
+									'group_type' => GROUP_SPECIAL,
+									'group_name' => 'ADMINISTRATORS'
+							),
+							array(
+									// Should be picked up
+									'group_id' => '2',
+									'group_type' => GROUP_HIDDEN,
+									'group_name' => 'Newly-Registered Spammers'
+							),
+							array(
+									// Should be picked up
+									'group_id' => '3',
+									'group_type' => GROUP_HIDDEN,
+									'group_name' => 'Newly-Registered Blatant Spammers'
+							),
+							false, // End of rows
+							array(
+									// Should be ignored, as we ignore all special groups except NEWLY_REGISTERED
+									'group_id' => '1',
+									'group_type' => GROUP_SPECIAL,
+									'group_name' => 'ADMINISTRATORS'
+							),
+							array(
+									// Should be picked up
+									'group_id' => '2',
+									'group_type' => GROUP_HIDDEN,
+									'group_name' => 'Newly-Registered Spammers'
+							),
+							array(
+									// Should be picked up
+									'group_id' => '3',
+									'group_type' => GROUP_HIDDEN,
+									'group_name' => 'Newly-Registered Blatant Spammers'
+							),
+							false // End of rows
+					));
+
+			$this->template
+				->expects($this->once())
+				->method('assign_vars')
+				->with(
+						$this->callback(function($vars) {
+
+							if ($vars['U_ACTION'] != 'index_test.php')
+							{
+								return false;
+							}
+							if ($vars['API_KEY'] != 'IM_AN_API_KEY_HONEST_GUV_123')
+							{
+								return false;
+							}
+							if ($vars['S_CHECK_REGISTRATIONS'] != 1)
+							{
+								return false;
+							}
+							if (!preg_match('/option value="2" selected="selected"/', $vars['S_GROUP_LIST']))
+							{
+								return false;
+							}
+							if (!preg_match('/option value="3" selected="selected"/', $vars['S_GROUP_LIST_BLATANT']))
+							{
+								return false;
+							}
+
+							return true;
+						}));
+
+			$this->group_helper->method('get_name')->will($this->returnArgument(0));
+
+			$controller = $this->get_controller();
+			$controller->set_action('index_test.php');
 			$controller->display_settings();
 		}
 	}
