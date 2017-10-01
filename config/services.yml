@@ -23,6 +23,8 @@ services:
             - '@log'
             - '@config'
             - '@language'
+            - '@group_helper'
+            - '@dbal.conn'
             - '%core.php_ext%'
             - '%core.root_path%'
 

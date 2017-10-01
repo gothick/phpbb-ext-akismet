@@ -36,6 +36,12 @@ class admin_controller
 	/** @var \phpbb\language\language */
 	protected $language;
 
+	/** @var \phpbb\group\helper */
+	protected $group_helper;
+
+	/** @var \phpbb\db\driver\driver_interface */
+	protected $db;
+
 	/** @var string */
 	protected $php_ext;
 
@@ -63,6 +69,8 @@ class admin_controller
 			\phpbb\log\log_interface $log,
 			\phpbb\config\config $config,
 			\phpbb\language\language $language,
+			\phpbb\group\helper $group_helper,
+			\phpbb\db\driver\driver_interface $db,
 			$php_ext,
 			$phpbb_root_path
 		)
@@ -73,6 +81,8 @@ class admin_controller
 		$this->log = $log;
 		$this->config = $config;
 		$this->language = $language;
+		$this->group_helper = $group_helper;
+		$this->db = $db;
 		$this->php_ext = $php_ext;
 		$this->phpbb_root_path = $phpbb_root_path;
 
@@ -113,7 +123,6 @@ class admin_controller
 			);
 
 		}
-
 		$this->template->assign_vars(
 				array(
 						'U_ACTION' => $this->u_action,
@@ -122,30 +131,25 @@ class admin_controller
 						'S_GROUP_LIST' => $this->group_select_options($this->config['gothick_akismet_add_registering_spammers_to_group']),
 						'S_GROUP_LIST_BLATANT' => $this->group_select_options($this->config['gothick_akismet_add_registering_blatant_spammers_to_group'])
 				));
-
 	}
 
 	protected function group_select_options($selected_group_id = 0)
 	{
 		// Adapted from global function group_select_options in core file functions_admin.php and adapted.
-		global $db, $config, $phpbb_container;
-
-		/** @var \phpbb\group\helper $group_helper */
-		$group_helper = $phpbb_container->get('group_helper');
 
 		$sql = 'SELECT group_id, group_type, group_name
 				FROM ' . GROUPS_TABLE . '
 				WHERE (group_type <> ' . GROUP_SPECIAL . " OR group_name = 'NEWLY_REGISTERED') " ;
-		$result = $db->sql_query($sql);
+		$result = $this->db->sql_query($sql);
 
 		$s_group_options = '';
 
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = $this->db->sql_fetchrow($result))
 		{
 			$selected = ($row['group_id'] == $selected_group_id) ? ' selected="selected"' : '';
-			$s_group_options .= '<option' . (($row['group_type'] == GROUP_SPECIAL) ? ' class="sep"' : '') . ' value="' . $row['group_id'] . '"' . $selected . '>' . $group_helper->get_name($row['group_name']) . '</option>';
+			$s_group_options .= '<option' . (($row['group_type'] == GROUP_SPECIAL) ? ' class="sep"' : '') . ' value="' . $row['group_id'] . '"' . $selected . '>' . $this->group_helper->get_name($row['group_name']) . '</option>';
 		}
-		$db->sql_freeresult($result);
+		$this->db->sql_freeresult($result);
 
 		return $s_group_options;
 	}
