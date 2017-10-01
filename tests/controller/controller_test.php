@@ -132,7 +132,7 @@ namespace gothick\akismet\tests\controller {
 		}
 
 		/**
-		 * @group failing
+		 * Test that the controller assigns all its variables properly.
 		 */
 		public function test_assign_vars()
 		{
