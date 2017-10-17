@@ -11,7 +11,7 @@ A phpBB Extension that runs all new topics and replies through the popular
 [Akismet](http://akismet.com) anti-spam service. Anything that Akismet detects as spam
 will be placed in the moderation queue.
 
-* Install in the normal way.
+* Install in the normal way (use the latest [release](https://github.com/gothick/phpbb-ext-akismet/releases) that's compatible with your version of phpBB).
 * Configure under Extensions->Akismet Settings. You'll need an API key for Akismet. 
 (You can opt to pay nothing for one if it's for non-commercial use.)
 
