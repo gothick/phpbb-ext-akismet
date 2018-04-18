@@ -3,6 +3,14 @@
 [![Build Status](https://travis-ci.org/gothick/phpbb-ext-akismet.svg?branch=master)](https://travis-ci.org/gothick/phpbb-ext-akismet)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/gothick/phpbb-ext-akismet/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/gothick/phpbb-ext-akismet/?branch=master)
 
+**NB** This extension has now formed the basis for the [offical phpBB
+Akismet extension](https://github.com/phpbb-extensions/akismet)! I'm
+pleased to say that the official extension is being developed apace
+and the phpBB team have already added features that I had on my "todo"
+list. The official extension should be making its way into the phpBB
+extension database, and you should definitely switch to that version
+once the official release is available.
+
 **Note**: This is not official phpBB software. Recent releases should be compatible with
 phpBB 3.2.x (tested with 3.2.1+). It seems to work for me, but your mileage may vary, and
 I give no guarantees!
