@@ -3,9 +3,8 @@
 [![Build Status](https://travis-ci.org/gothick/phpbb-ext-akismet.svg?branch=master)](https://travis-ci.org/gothick/phpbb-ext-akismet)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/gothick/phpbb-ext-akismet/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/gothick/phpbb-ext-akismet/?branch=master)
 
-**Note**: This is not official phpBB software. Recent releases should be compatible with
-phpBB 3.2.x (tested with 3.2.1+). It seems to work for me, but your mileage may vary, and
-I give no guarantees!
+**Note**: You should use the [Official Akismet Extension](https://www.phpbb.com/customise/db/extension/akismet/) ([GitHub](https://github.com/senky/phpbb-ext-akismet)) 
+rather than this repository. This is not official phpBB software. It was a homebrew extension I wrote that formed some of the basis for the official extension, and I'm not maintaining it any longer.
 
 A phpBB Extension that runs all new topics and replies through the popular 
 [Akismet](http://akismet.com) anti-spam service. Anything that Akismet detects as spam
