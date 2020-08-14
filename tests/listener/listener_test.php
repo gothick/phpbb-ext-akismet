@@ -57,10 +57,10 @@ class listener_test extends \phpbb_test_case
 			->setConstructorArgs(
 				[
 						$user,
-						$this->getMock('\phpbb\request\request'),
+						$this->getMockBuilder('\phpbb\request\request')->getMock(),
 						$config,
 						$log,
-						$this->getMock('\phpbb\auth\auth'),
+						$this->getMockBuilder('\phpbb\auth\auth')->getMock(),
 						$this->container,
 						$phpEx,
 						$phpbb_root_path
@@ -259,8 +259,10 @@ class listener_test extends \phpbb_test_case
 			$log->expects($this->once())
 				->method('add')
 				->with($this->equalTo('mod'));
+		} else {
+			// Nothing to see here.
+			self::expectNotToPerformAssertions();
 		}
-
 		$listener = $this->get_listener(new \gothick\akismet\tests\mock\user($username), new \phpbb\config\config($config), $log);
 		if ($should_add_to_spammy_group)
 		{
