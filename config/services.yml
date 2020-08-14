@@ -37,8 +37,7 @@ services:
 
     gothick.akismet.client:
         class: Gothick\AkismetClient\Client
-        factory_service: gothick.akismet.client.factory
-        factory_method: createAkismet
+        factory: ['@gothick.akismet.client.factory', 'createAkismet']
 
     gothick.akismet.notification.type.post_in_queue:
         class: gothick\akismet\notification\type\post_in_queue
